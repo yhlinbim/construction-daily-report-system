@@ -1,0 +1,55 @@
+﻿@{
+    ViewData["Title"] = "New Daily Report";
+    var projectId = ViewBag.ProjectId as string;
+}
+
+<div class="container mt-4">
+    <h2>New Daily Report</h2>
+    <p class="text-muted">Project: @projectId</p>
+
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="projectId" value="@projectId" />
+
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label class="form-label">Site Worker ID</label>
+            <input type="text" name="siteWorkerId" class="form-control"
+                   placeholder="e.g. EMP001" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Report Date</label>
+            <input type="date" name="reportDate" class="form-control"
+                   value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Work Description</label>
+            <textarea name="workDescription" class="form-control" rows="4"
+                      placeholder="Describe the work carried out today" required></textarea>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Workers on Site</label>
+                <input type="number" name="workerCount" class="form-control"
+                       min="1" value="1" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Weather Condition</label>
+                <select name="weatherCondition" class="form-select" required>
+                    <option value="Fine">Fine</option>
+                    <option value="Cloudy">Cloudy</option>
+                    <option value="Rainy">Rainy</option>
+                    <option value="Stormy">Stormy</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create Report</button>
+        <a asp-action="Index" asp-route-projectId="@projectId"
+           class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+</div>
