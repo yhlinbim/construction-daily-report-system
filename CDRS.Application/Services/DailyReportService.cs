@@ -82,5 +82,14 @@ namespace CDRS.Application.Services
                 throw new KeyNotFoundException($"Daily report with ID {reportId} was not found.");
             return report;
         }
+
+        public async Task StartReviewAsync(Guid reportId, CancellationToken ct = default)
+        {
+            var report = await GetReportOrThrowAsync(reportId, ct);
+            report.StartReview();
+            await _repository.SaveChangesAsync(ct);
+
+            _logger.LogInformation("Report {ReportId} moved to under review", reportId);
+        }
     }
 }

@@ -20,5 +20,6 @@ namespace CDRS.Application.Interfaces
         Task RejectReportAsync(Guid reportId, string reason, CancellationToken ct = default);
         Task<List<DailyReport>> GetProjectReportsAsync(string projectId, CancellationToken ct = default);
         Task<List<DailyReport>> GetPendingReviewsAsync(CancellationToken ct = default);
+        Task StartReviewAsync(Guid reportId, CancellationToken ct = default);
     }
 }

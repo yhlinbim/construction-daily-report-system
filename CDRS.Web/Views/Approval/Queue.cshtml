@@ -1,0 +1,84 @@
+﻿@model List<CDRS.Domain.Entities.DailyReport>
+@{
+    ViewData["Title"] = "Approval Queue";
+}
+
+<div class="container mt-4">
+    <h2>Approval Queue</h2>
+    <p class="text-muted">Reports pending review and approval</p>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No reports pending review.</div>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Project</th>
+                    <th>Worker</th>
+                    <th>Description</th>
+                    <th>Workers</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var report in Model)
+                {
+                    <tr>
+                        <td>@report.ReportDate.ToString("yyyy-MM-dd")</td>
+                        <td>@report.ProjectId</td>
+                        <td>@report.SiteWorkerId</td>
+                        <td>@report.WorkDescription</td>
+                        <td>@report.WorkerCount</td>
+                        <td>
+                            <span class="badge bg-warning">@report.Status</span>
+                        </td>
+                        <td>
+                            <form asp-action="Approve" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@report.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    Approve
+                                </button>
+                            </form>
+
+                            <button type="button" class="btn btn-sm btn-danger ms-1"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#reject-@report.Id">
+                                Reject
+                            </button>
+
+                            <div id="reject-@report.Id" class="collapse mt-2">
+                                <form asp-action="Reject" method="post">
+                                    <input type="hidden" name="id" value="@report.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <div class="input-group">
+                                        <input type="text" name="reason"
+                                               class="form-control form-control-sm"
+                                               placeholder="Rejection reason (required)" />
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            Confirm Reject
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
