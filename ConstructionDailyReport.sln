@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CDRS.Application", "CDRS.Ap
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CDRS.Infrastructure", "CDRS.Infrastructure\CDRS.Infrastructure.csproj", "{7E040220-3077-4C1A-B149-C7D15B8B0EE0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CDRS.UnitTests", "CDRS.UnitTests\CDRS.UnitTests.csproj", "{9CCB8735-DF0F-406D-A7B1-F8FD110975A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{7E040220-3077-4C1A-B149-C7D15B8B0EE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E040220-3077-4C1A-B149-C7D15B8B0EE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E040220-3077-4C1A-B149-C7D15B8B0EE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CCB8735-DF0F-406D-A7B1-F8FD110975A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CCB8735-DF0F-406D-A7B1-F8FD110975A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CCB8735-DF0F-406D-A7B1-F8FD110975A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CCB8735-DF0F-406D-A7B1-F8FD110975A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
