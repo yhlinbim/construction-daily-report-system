@@ -5,3 +5,7 @@ obj/
 appsettings.Development.json 
 appsettings.Production.json 
 *.PublishSettings
+ 
+# Test results and coverage reports 
+**/TestResults/ 
+CoverageReport/ 
