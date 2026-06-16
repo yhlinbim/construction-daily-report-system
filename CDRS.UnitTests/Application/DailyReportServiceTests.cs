@@ -212,5 +212,36 @@ namespace CDRS.UnitTests.Application
             result.Should().HaveCount(2);
             result.Should().AllSatisfy(r => r.ProjectId.Should().Be("PROJ-001"));
         }
+
+        // =============================================
+        // Edge cases and regression tests
+        // =============================================
+
+        [Fact]
+        public async Task CreateReportAsync_ReportDateShouldBeStoredAsDateOnly()
+        {
+            // Regression test: ensure time component is stripped from report date
+            var result = await _service.CreateReportAsync(
+                "PROJ-001", "EMP001",
+                new DateTime(2026, 6, 15, 14, 30, 0),  // has time component
+                "Foundation work.", 3, "Fine");
+
+            result.ReportDate.Should().Be(new DateTime(2026, 6, 15));
+            result.ReportDate.TimeOfDay.Should().Be(TimeSpan.Zero);
+        }
+
+        [Fact]
+        public async Task GetPendingReviewsAsync_ShouldDelegateToRepository()
+        {
+            _repositoryMock
+                .Setup(r => r.GetPendingReviewAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<DailyReport>());
+
+            await _service.GetPendingReviewsAsync();
+
+            _repositoryMock.Verify(
+                r => r.GetPendingReviewAsync(It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
     }
 }
