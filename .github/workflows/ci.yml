@@ -2,7 +2,7 @@ name: .NET CI Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, feature/CDRA-15-unit-tests ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
