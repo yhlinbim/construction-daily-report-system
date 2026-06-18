@@ -2,6 +2,7 @@
 ASP.NET Core MVC system for construction site daily report approval workflows. Built to demonstrate SOLID principles, unit testing, and CI/CD practices.
 
 # Construction Daily Report Approval System
+[![.github/workflows/ci.yml](https://github.com/yhlinbim/construction-daily-report-system/actions/workflows/ci.yml/badge.svg?branch=feature%2FCDRA-15-unit-tests)](https://github.com/yhlinbim/construction-daily-report-system/actions/workflows/ci.yml)
 
 ## Why this project exists
 
