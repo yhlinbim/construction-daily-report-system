@@ -7,11 +7,13 @@
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="FluentAssertions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
@@ -28,6 +30,7 @@
     <ProjectReference Include="..\CDRS.Domain\CDRS.Domain.csproj" />
     <ProjectReference Include="..\CDRS.Application\CDRS.Application.csproj" />
     <ProjectReference Include="..\CDRS.Infrastructure\CDRS.Infrastructure.csproj" />
+    <ProjectReference Include="..\CDRS.Web\CDRS.Web.csproj" />
   </ItemGroup>
 
 </Project>
