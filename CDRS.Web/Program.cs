@@ -36,7 +36,10 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    if (db.Database.IsRelational())  // skip migration for non-relational database providers
+    {
+        db.Database.Migrate();
+    }
 }
 
 // Configure the HTTP request pipeline.
