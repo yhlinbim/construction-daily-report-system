@@ -4,6 +4,7 @@ using CDRS.Application.Interfaces;
 using CDRS.Application.Services;
 using CDRS.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using CDRS.Web.Middleware;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -53,6 +54,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<CorrelationIdMiddleware>();
 
 app.UseSerilogRequestLogging(options =>
 {
