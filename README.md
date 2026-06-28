@@ -24,27 +24,25 @@ context; the engineering practices are the point.
 ## What it does
 
 A five-state approval workflow for daily reports:
+```
 Draft → Submitted → UnderReview → Approved
                               ↘ Rejected
+```
 
 Workers submit reports. Supervisors review and approve or reject.
 The business rules — what transitions are valid, what data is required —
 live in the domain entity, not in the controller or database.
 
 ## How it's structured
+```
 Web (Controllers + API endpoints)
-
-		↓
-
+    ↓
 Application (DailyReportService, interfaces)
-
-		↓
-
+    ↓
 Infrastructure (EF Core, Repository)
-
-		↓
-
+    ↓
 Domain (DailyReport — pure business logic, no dependencies)
+```
 
 The business rules live in the domain entity. The service layer
 coordinates the steps. Controllers just handle HTTP.
