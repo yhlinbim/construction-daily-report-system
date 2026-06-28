@@ -26,7 +26,7 @@ context; the engineering practices are the point.
 A five-state approval workflow for daily reports:
 ```
 Draft → Submitted → UnderReview → Approved
-                              ↘ Rejected
+                                ↘ Rejected
 ```
 
 Workers submit reports. Supervisors review and approve or reject.
