@@ -21,6 +21,10 @@ machine, properly layered with Clean Architecture, and covered by
 automated tests. The construction site daily report is the domain
 context; the engineering practices are the point.
 
+This is a side project applying modern .NET practices —
+Clean Architecture, automated testing, and CI/CD — to a
+business domain I know from real-world construction IT work.
+
 ## What it does
 
 A simplified approval workflow for construction site daily reports,
