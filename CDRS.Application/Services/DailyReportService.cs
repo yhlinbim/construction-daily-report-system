@@ -28,8 +28,8 @@ namespace CDRS.Application.Services
             CancellationToken ct = default)
         {
             _logger.LogInformation(
-                "Creating daily report for project {ProjectId} by worker {WorkerId}",
-                projectId, siteWorkerId);
+                "Creating daily report. ProjectId: {ProjectId}, WorkerId: {WorkerId}, Date: {ReportDate}",
+                projectId, siteWorkerId, reportDate);
 
             var report = DailyReport.Create(
                 projectId, siteWorkerId, reportDate,
@@ -38,34 +38,59 @@ namespace CDRS.Application.Services
             await _repository.AddAsync(report, ct);
             await _repository.SaveChangesAsync(ct);
 
+            _logger.LogInformation(
+                "Daily report created. ReportId: {ReportId}, ProjectId: {ProjectId}",
+                report.Id, projectId);
+
             return report;
         }
 
         public async Task SubmitReportAsync(Guid reportId, CancellationToken ct = default)
         {
             var report = await GetReportOrThrowAsync(reportId, ct);
+
+            _logger.LogInformation(
+                "Submitting report. ReportId: {ReportId}, ProjectId: {ProjectId}",
+                reportId, report.ProjectId);
+
             report.Submit();
             await _repository.SaveChangesAsync(ct);
 
-            _logger.LogInformation("Report {ReportId} submitted successfully", reportId);
+            _logger.LogInformation(
+                "Report submitted. ReportId: {ReportId}, ProjectId: {ProjectId}",
+                reportId, report.ProjectId);
         }
 
         public async Task ApproveReportAsync(Guid reportId, CancellationToken ct = default)
         {
             var report = await GetReportOrThrowAsync(reportId, ct);
+
+            _logger.LogInformation(
+                "Approving report. ReportId: {ReportId}, ProjectId: {ProjectId}",
+                reportId, report.ProjectId);
+
             report.Approve();
             await _repository.SaveChangesAsync(ct);
 
-            _logger.LogInformation("Report {ReportId} approved", reportId);
+            _logger.LogInformation(
+                "Report approved. ReportId: {ReportId}, ProjectId: {ProjectId}, ApprovedAtUtc: {ApprovedAt}",
+                reportId, report.ProjectId, DateTime.UtcNow);
         }
 
         public async Task RejectReportAsync(Guid reportId, string reason, CancellationToken ct = default)
         {
             var report = await GetReportOrThrowAsync(reportId, ct);
+
+            _logger.LogInformation(
+                "Rejecting report. ReportId: {ReportId}, ProjectId: {ProjectId}",
+                reportId, report.ProjectId);
+
             report.Reject(reason);
             await _repository.SaveChangesAsync(ct);
 
-            _logger.LogInformation("Report {ReportId} rejected. Reason: {Reason}", reportId, reason);
+            _logger.LogWarning(
+                "Report rejected. ReportId: {ReportId}, ProjectId: {ProjectId}, Reason: {Reason}",
+                reportId, report.ProjectId, reason);
         }
 
         public async Task<List<DailyReport>> GetProjectReportsAsync(
@@ -89,7 +114,9 @@ namespace CDRS.Application.Services
             report.StartReview();
             await _repository.SaveChangesAsync(ct);
 
-            _logger.LogInformation("Report {ReportId} moved to under review", reportId);
+            _logger.LogInformation(
+                "Report moved to under review. ReportId: {ReportId}, ProjectId: {ProjectId}",
+                reportId, report.ProjectId);
         }
     }
 }

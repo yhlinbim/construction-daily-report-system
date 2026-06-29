@@ -1,36 +1,98 @@
 # Construction Daily Report Approval System
-[![.github/workflows/ci.yml](https://github.com/yhlinbim/construction-daily-report-system/actions/workflows/ci.yml/badge.svg?branch=feature%2FCDRA-15-unit-tests)](https://github.com/yhlinbim/construction-daily-report-system/actions/workflows/ci.yml)
 
-## Why this project exists
+[![CI](https://github.com/yhlinbim/construction-daily-report-system/actions/workflows/ci.yml/badge.svg)](https://github.com/yhlinbim/construction-daily-report-system/actions/workflows/ci.yml)
 
-In construction enterprise environments, site daily reporting often relies on
-legacy BPM platforms where business rules are embedded in stored procedures
-and platform configurations. This makes the logic untestable, hard to audit,
-and tightly coupled to the platform vendor.
+## Live Demo
 
-This project reimplements the same business domain using modern .NET 8
-engineering practices — demonstrating how the same workflow can be built
-with clean architecture, testable service layers, and automated CI/CD.
+Swagger UI: https://cdrs-poc-hansl-hnh3gvavdsf7b3a5.australiaeast-01.azurewebsites.net/swagger
 
-## Business Domain
+Running on Azure App Service (Australia East), deployed automatically via GitHub Actions.
 
-Construction site workers submit daily progress reports each day.
-Site supervisors review and approve or reject submissions.
-Project managers have oversight across all site reports.
+## Background
 
-## Architecture
+Approval workflows in enterprise environments are often spread across
+multiple layers — application code handles some logic, stored procedures
+handle data access and transformations, platform configuration handles
+routing. It works, but the business rules are scattered and hard to test.
 
-[To be updated as the project progresses]
+I built this to explore what the same workflow looks like when the
+business rules are consolidated in a domain entity with a clear state
+machine, properly layered with Clean Architecture, and covered by
+automated tests. The construction site daily report is the domain
+context; the engineering practices are the point.
+
+This is a side project applying modern .NET practices —
+Clean Architecture, automated testing, and CI/CD — to a
+business domain I know from real-world construction IT work.
+
+## What it does
+
+A simplified approval workflow for construction site daily reports,
+modelling the core state transitions:
+
+```
+Draft → Submitted → UnderReview → Approved
+                                ↘ Rejected
+```
+
+Real-world approval workflows are more complex — delegated signing,
+escalation, rejection to specific steps, proxy approval. This project
+focuses on the engineering fundamentals: how to model a state machine
+in a domain entity, enforce business rules, and test them in isolation.
+
+## How it's structured
+
+```
+Web (Controllers + API endpoints)
+    ↓
+Application (DailyReportService, interfaces)
+    ↓
+Infrastructure (EF Core, Repository)
+    ↓
+Domain (DailyReport — pure business logic, no dependencies)
+```
+
+The business rules live in the domain entity. The service layer
+coordinates the steps. Controllers just handle HTTP.
 
 ## Technology Stack
 
-- ASP.NET Core 8 MVC
-- Entity Framework Core 8 (SQL Server / LocalDB)
-- xUnit + Moq (unit testing)
-- Swagger / OpenAPI
-- GitHub Actions (CI/CD)
-- Azure App Service (deployment)
+| Category | Technology | Purpose |
+|----------|-----------|---------|
+| Framework | ASP.NET Core 8 MVC | Web application |
+| ORM | Entity Framework Core 8 | Database access |
+| Database (local) | SQL Server LocalDB | Development |
+| Database (cloud) | Azure SQL Database (Serverless) | Production |
+| Testing | xUnit + Moq + FluentAssertions | Unit + Integration tests |
+| Logging | Serilog (structured JSON) | Observability |
+| CI | GitHub Actions | Automated build & test |
+| CD | GitHub Actions → Azure App Service | Automated deployment |
+| API Docs | Swagger / OpenAPI | API documentation |
+| Cloud | Azure App Service (F1 Free, Australia East) | Hosting |
+| Task tracking | Jira (Scrum) | Sprint management |
 
-## Status
+## Engineering Practices
 
-🚧 Under active development — started June 2026
+- **SOLID principles**: SRP (service layer), DIP (interface-based DI)
+- **Domain-driven design**: Aggregate with state machine, domain exceptions
+- **Testing**: 41 unit + integration tests, AAA pattern, Moq for isolation
+- **CI/CD**: Automated quality gate — failing tests block deployment
+- **Structured logging**: Serilog with Correlation ID for request tracing
+- **Security**: No secrets in git, environment-based configuration
+
+## Tests
+
+41 tests across all four layers — domain, service, repository, and controller.
+All passing in CI on every push.
+
+## Running locally
+
+```bash
+git clone https://github.com/yhlinbim/construction-daily-report-system
+cd construction-daily-report-system
+dotnet restore
+dotnet ef database update --project CDRS.Infrastructure --startup-project CDRS.Web
+dotnet run --project CDRS.Web
+```
+
+Then open `/swagger`.

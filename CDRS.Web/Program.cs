@@ -1,18 +1,34 @@
+using Serilog;
+using Serilog.Events;
 using CDRS.Application.Interfaces;
 using CDRS.Application.Services;
 using CDRS.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using CDRS.Web.Middleware;
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter())
+    .CreateBootstrapLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) =>
+    configuration
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+        .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter()));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddHealthChecks();
 
-// Database
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -38,6 +54,14 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<CorrelationIdMiddleware>();
+
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate =
+        "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000}ms";
+});
 
 // Auto-apply migrations on startup (suitable for POC, not for production)
 using (var scope = app.Services.CreateScope())
