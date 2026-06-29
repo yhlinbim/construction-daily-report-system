@@ -23,15 +23,17 @@ context; the engineering practices are the point.
 
 ## What it does
 
-A five-state approval workflow for daily reports:
+A simplified approval workflow for construction site daily reports,
+modelling the core state transitions:
 ```
 Draft → Submitted → UnderReview → Approved
                                 ↘ Rejected
 ```
 
-Workers submit reports. Supervisors review and approve or reject.
-The business rules — what transitions are valid, what data is required —
-live in the domain entity, not in the controller or database.
+Real-world approval workflows are more complex — delegated signing,
+escalation, rejection to specific steps, proxy approval. This project
+focuses on the engineering fundamentals: how to model a state machine
+in a domain entity, enforce business rules, and test them in isolation.
 
 ## How it's structured
 ```
