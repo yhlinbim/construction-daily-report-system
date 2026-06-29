@@ -29,6 +29,7 @@ business domain I know from real-world construction IT work.
 
 A simplified approval workflow for construction site daily reports,
 modelling the core state transitions:
+
 ```
 Draft → Submitted → UnderReview → Approved
                                 ↘ Rejected
@@ -40,6 +41,7 @@ focuses on the engineering fundamentals: how to model a state machine
 in a domain entity, enforce business rules, and test them in isolation.
 
 ## How it's structured
+
 ```
 Web (Controllers + API endpoints)
     ↓
@@ -53,14 +55,30 @@ Domain (DailyReport — pure business logic, no dependencies)
 The business rules live in the domain entity. The service layer
 coordinates the steps. Controllers just handle HTTP.
 
-## Tech
+## Technology Stack
 
-- ASP.NET Core 8 MVC + Web API
-- Entity Framework Core 8
-- Azure SQL Database (Serverless) in production, LocalDB locally
-- xUnit + Moq + FluentAssertions
-- Serilog with Correlation ID middleware
-- GitHub Actions CI/CD → Azure App Service
+| Category | Technology | Purpose |
+|----------|-----------|---------|
+| Framework | ASP.NET Core 8 MVC | Web application |
+| ORM | Entity Framework Core 8 | Database access |
+| Database (local) | SQL Server LocalDB | Development |
+| Database (cloud) | Azure SQL Database (Serverless) | Production |
+| Testing | xUnit + Moq + FluentAssertions | Unit + Integration tests |
+| Logging | Serilog (structured JSON) | Observability |
+| CI | GitHub Actions | Automated build & test |
+| CD | GitHub Actions → Azure App Service | Automated deployment |
+| API Docs | Swagger / OpenAPI | API documentation |
+| Cloud | Azure App Service (F1 Free, Australia East) | Hosting |
+| Task tracking | Jira (Scrum) | Sprint management |
+
+## Engineering Practices
+
+- **SOLID principles**: SRP (service layer), DIP (interface-based DI)
+- **Domain-driven design**: Aggregate with state machine, domain exceptions
+- **Testing**: 41 unit + integration tests, AAA pattern, Moq for isolation
+- **CI/CD**: Automated quality gate — failing tests block deployment
+- **Structured logging**: Serilog with Correlation ID for request tracing
+- **Security**: No secrets in git, environment-based configuration
 
 ## Tests
 
