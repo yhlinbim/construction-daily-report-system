@@ -22,6 +22,11 @@ namespace CDRS.Application.Services
             _logger = logger;
         }
 
+        /// <summary>
+        /// Creates a new daily report in Draft status.
+        /// The report must be explicitly submitted via SubmitReportAsync
+        /// before it enters the approval workflow.
+        /// </summary>
         public async Task<DailyReport> CreateReportAsync(
             string projectId, string siteWorkerId, DateTime reportDate,
             string workDescription, int workerCount, string weatherCondition,
@@ -45,6 +50,9 @@ namespace CDRS.Application.Services
             return report;
         }
 
+        /// <summary>
+        /// Transitions a report from Draft to Submitted status.
+        /// </summary>
         public async Task SubmitReportAsync(Guid reportId, CancellationToken ct = default)
         {
             var report = await GetReportOrThrowAsync(reportId, ct);
@@ -61,6 +69,10 @@ namespace CDRS.Application.Services
                 reportId, report.ProjectId);
         }
 
+        /// <summary>
+        /// Approves a report that is currently under review.
+        /// Throws DomainException if the report has not been reviewed yet.
+        /// </summary>
         public async Task ApproveReportAsync(Guid reportId, CancellationToken ct = default)
         {
             var report = await GetReportOrThrowAsync(reportId, ct);
@@ -77,6 +89,9 @@ namespace CDRS.Application.Services
                 reportId, report.ProjectId, DateTime.UtcNow);
         }
 
+        /// <summary>
+        /// Rejects a report that is currently under review, with a required reason.
+        /// </summary>
         public async Task RejectReportAsync(Guid reportId, string reason, CancellationToken ct = default)
         {
             var report = await GetReportOrThrowAsync(reportId, ct);
@@ -93,10 +108,16 @@ namespace CDRS.Application.Services
                 reportId, report.ProjectId, reason);
         }
 
+        /// <summary>
+        /// Retrieves all reports for a specific project, ordered by date descending.
+        /// </summary>
         public async Task<List<DailyReport>> GetProjectReportsAsync(
             string projectId, CancellationToken ct = default)
             => await _repository.GetByProjectIdAsync(projectId, ct);
 
+        /// <summary>
+        /// Retrieves all reports currently pending review (Submitted or UnderReview status).
+        /// </summary>
         public async Task<List<DailyReport>> GetPendingReviewsAsync(CancellationToken ct = default)
             => await _repository.GetPendingReviewAsync(ct);
 
@@ -108,6 +129,9 @@ namespace CDRS.Application.Services
             return report;
         }
 
+        /// <summary>
+        /// Transitions a report from Submitted to UnderReview status.
+        /// </summary>
         public async Task StartReviewAsync(Guid reportId, CancellationToken ct = default)
         {
             var report = await GetReportOrThrowAsync(reportId, ct);
