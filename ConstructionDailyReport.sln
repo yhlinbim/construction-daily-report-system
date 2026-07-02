@@ -3,23 +3,26 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CDRS.Web", "CDRS.Web\CDRS.Web.csproj", "{97226AC5-E208-4782-81BF-5F526FC4771D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CDRS.Web", "CDRS.Web\CDRS.Web.csproj", "{97226AC5-E208-4782-81BF-5F526FC4771D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CDRS.Domain", "CDRS.Domain\CDRS.Domain.csproj", "{51A8F61F-FD26-48B5-A9FE-79FF0CE03209}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CDRS.Domain", "CDRS.Domain\CDRS.Domain.csproj", "{51A8F61F-FD26-48B5-A9FE-79FF0CE03209}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CDRS.Application", "CDRS.Application\CDRS.Application.csproj", "{8BA30BC5-F718-4537-BA83-2B1D6211D5E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CDRS.Application", "CDRS.Application\CDRS.Application.csproj", "{8BA30BC5-F718-4537-BA83-2B1D6211D5E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CDRS.Infrastructure", "CDRS.Infrastructure\CDRS.Infrastructure.csproj", "{7E040220-3077-4C1A-B149-C7D15B8B0EE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CDRS.Infrastructure", "CDRS.Infrastructure\CDRS.Infrastructure.csproj", "{7E040220-3077-4C1A-B149-C7D15B8B0EE0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CDRS.UnitTests", "CDRS.UnitTests\CDRS.UnitTests.csproj", "{9CCB8735-DF0F-406D-A7B1-F8FD110975A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CDRS.UnitTests", "CDRS.UnitTests\CDRS.UnitTests.csproj", "{9CCB8735-DF0F-406D-A7B1-F8FD110975A3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "方案項目", "方案項目", "{4BF37118-F3CE-4BA5-9A77-6151755B09AC}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		Dockerfile.txt = Dockerfile.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{97226AC5-E208-4782-81BF-5F526FC4771D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -42,5 +45,11 @@ Global
 		{9CCB8735-DF0F-406D-A7B1-F8FD110975A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9CCB8735-DF0F-406D-A7B1-F8FD110975A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9CCB8735-DF0F-406D-A7B1-F8FD110975A3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {47334D71-CDF0-46C7-96C0-AC722BDE18F3}
 	EndGlobalSection
 EndGlobal
