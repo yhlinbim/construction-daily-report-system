@@ -1,12 +1,15 @@
 ﻿using CDRS.Application.Interfaces;
 using CDRS.Domain.Entities;
 using CDRS.Domain.Exceptions;
+using CDRS.Web.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CDRS.Web.Controllers
 {
     [ApiController]
     [Route("api/reports")]
+    [Authorize]
     public class ReportApiController : ControllerBase
     {
         private readonly IDailyReportService _reportService;
@@ -34,6 +37,7 @@ namespace CDRS.Web.Controllers
         /// Get all reports pending review
         /// </summary>
         [HttpGet("pending")]
+        [Authorize(Roles = $"{Roles.Supervisor},{Roles.ProjectManager}")]
         public async Task<ActionResult<IEnumerable<DailyReport>>> GetPendingReviews()
         {
             var reports = await _reportService.GetPendingReviewsAsync();
@@ -90,6 +94,7 @@ namespace CDRS.Web.Controllers
         /// Approve a report
         /// </summary>
         [HttpPost("{id}/approve")]
+        [Authorize(Roles = $"{Roles.Supervisor},{Roles.ProjectManager}")]
         public async Task<IActionResult> Approve(Guid id)
         {
             try
@@ -111,6 +116,7 @@ namespace CDRS.Web.Controllers
         /// Reject a report
         /// </summary>
         [HttpPost("{id}/reject")]
+        [Authorize(Roles = $"{Roles.Supervisor},{Roles.ProjectManager}")]
         public async Task<IActionResult> Reject(Guid id, [FromBody] RejectReportRequest request)
         {
             try
