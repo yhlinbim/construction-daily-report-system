@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+**/.vs/
+*.user
+.git/
+.github/
+appsettings.Development.json
+appsettings.Production.json
+*.PublishSettings
