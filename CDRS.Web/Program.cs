@@ -5,6 +5,10 @@ using CDRS.Application.Services;
 using CDRS.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using CDRS.Web.Middleware;
+using CDRS.Web.Auth;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -24,6 +28,13 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .Enrich.FromLogContext()
         .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter()));
 
+// JWT Settings
+var jwtSettings = builder.Configuration
+    .GetSection("JwtSettings")
+    .Get<JwtSettings>()!;
+builder.Services.AddSingleton(jwtSettings);
+builder.Services.AddSingleton<TokenService>();
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
@@ -41,6 +52,31 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IDailyReportRepository, DailyReportRepository>();
 builder.Services.AddScoped<IDailyReportService, DailyReportService>();
 
+// JWT Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme =
+        JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme =
+        JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings.Issuer,
+        ValidAudience = jwtSettings.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
+    };
+});
+
+builder.Services.AddAuthorization();
+
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -50,6 +86,32 @@ builder.Services.AddSwaggerGen(c =>
         Title = "Construction Daily Report API",
         Version = "v1",
         Description = "API for managing construction site daily reports and approval workflows"
+    });
+
+    // JWT Bearer ³]©w
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter JWT token. Get one from POST /api/auth/token"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
     });
 });
 
@@ -84,6 +146,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
