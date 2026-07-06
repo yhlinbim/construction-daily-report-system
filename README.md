@@ -70,6 +70,9 @@ coordinates the steps. Controllers just handle HTTP.
 | API Docs | Swagger / OpenAPI | API documentation |
 | Cloud | Azure App Service (F1 Free, Australia East) | Hosting |
 | Task tracking | Jira (Scrum) | Sprint management |
+| Containerisation | Docker (multi-stage build) | Portable deployment |
+| Authentication | JWT Bearer + RBAC | API security |
+| API | REST + GraphQL (Hot Chocolate) | Flexible query interface |
 
 ## Engineering Practices
 
@@ -79,6 +82,8 @@ coordinates the steps. Controllers just handle HTTP.
 - **CI/CD**: Automated quality gate — failing tests block deployment
 - **Structured logging**: Serilog with Correlation ID for request tracing
 - **Security**: No secrets in git, environment-based configuration
+- **API design**: REST for write operations with JWT/RBAC; GraphQL for flexible read queries
+- **Containerisation**: Multi-stage Dockerfile — unit tests run in build stage as quality gate
 
 ## Tests
 
