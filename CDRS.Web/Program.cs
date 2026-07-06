@@ -9,6 +9,7 @@ using CDRS.Web.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using CDRS.Web.GraphQL;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -76,6 +77,12 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+
+// GraphQL
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<ReportQuery>()
+    .AddMutationType<ReportMutation>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -156,6 +163,8 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapHealthChecks("/health");
+
+app.MapGraphQL();
 
 app.Run();
 
