@@ -50,9 +50,7 @@ namespace CDRS.Web.Controllers
         [HttpPost]
         public async Task<ActionResult<DailyReport>> Create([FromBody] CreateReportRequest request)
         {
-            try
-            {
-                var report = await _reportService.CreateReportAsync(
+            var report = await _reportService.CreateReportAsync(
                     request.ProjectId,
                     request.SiteWorkerId,
                     request.ReportDate,
@@ -60,13 +58,8 @@ namespace CDRS.Web.Controllers
                     request.WorkerCount,
                     request.WeatherCondition);
 
-                return CreatedAtAction(nameof(GetByProject),
-                    new { projectId = report.ProjectId }, report);
-            }
-            catch (DomainException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            return CreatedAtAction(nameof(GetByProject),
+                new { projectId = report.ProjectId }, report);
         }
 
         /// <summary>
@@ -75,19 +68,8 @@ namespace CDRS.Web.Controllers
         [HttpPost("{id}/submit")]
         public async Task<IActionResult> Submit(Guid id)
         {
-            try
-            {
-                await _reportService.SubmitReportAsync(id);
-                return NoContent();
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (DomainException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            await _reportService.SubmitReportAsync(id);
+            return NoContent();
         }
 
         /// <summary>
@@ -97,19 +79,8 @@ namespace CDRS.Web.Controllers
         [Authorize(Roles = $"{Roles.Supervisor},{Roles.ProjectManager}")]
         public async Task<IActionResult> Approve(Guid id)
         {
-            try
-            {
-                await _reportService.ApproveReportAsync(id);
-                return NoContent();
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (DomainException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            await _reportService.ApproveReportAsync(id);
+            return NoContent();
         }
 
         /// <summary>
@@ -119,19 +90,8 @@ namespace CDRS.Web.Controllers
         [Authorize(Roles = $"{Roles.Supervisor},{Roles.ProjectManager}")]
         public async Task<IActionResult> Reject(Guid id, [FromBody] RejectReportRequest request)
         {
-            try
-            {
-                await _reportService.RejectReportAsync(id, request.Reason);
-                return NoContent();
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (DomainException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            await _reportService.RejectReportAsync(id, request.Reason);
+            return NoContent();
         }
     }
 
