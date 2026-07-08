@@ -126,6 +126,8 @@ var app = builder.Build();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
 
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
 app.UseSerilogRequestLogging(options =>
 {
     options.MessageTemplate =
