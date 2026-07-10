@@ -102,7 +102,7 @@ jobs:
 
     - name: Swagger UI check
       run: |
-        response=$(curl -s -o /dev/null -w "%{http_code}" \
+        response=$(curl -s -o /dev/null -w "%{http_code}" -L \
           https://cdrs-poc-hansl-hnh3gvavdsf7b3a5.australiaeast-01.azurewebsites.net/swagger)
         echo "Swagger UI response: $response"
         if [ "$response" != "200" ]; then
