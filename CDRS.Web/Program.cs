@@ -134,11 +134,14 @@ app.UseSerilogRequestLogging(options =>
         "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000}ms";
 });
 
-// Auto-apply migrations on startup (suitable for POC, not for production)
-using (var scope = app.Services.CreateScope())
+// Auto-apply migrations on startup in development environment only.
+// In production, migrations are executed as a dedicated CI/CD pipeline step
+// before deployment to prevent race conditions with multiple app instances.
+if (app.Environment.IsDevelopment())
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    if (db.Database.IsRelational())  // skip migration for non-relational database providers
+    if (db.Database.IsRelational())
     {
         db.Database.Migrate();
     }
@@ -147,7 +150,7 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())
 //{
-    app.UseSwagger();
+app.UseSwagger();
     app.UseSwaggerUI();
 //}
 
