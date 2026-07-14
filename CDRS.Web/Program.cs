@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using CDRS.Web.GraphQL;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -39,7 +40,9 @@ builder.Services.AddSingleton<TokenService>();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddHealthChecks();
+// Health checks — includes DB connectivity check
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>("database");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
@@ -167,7 +170,32 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.MapHealthChecks("/health");
+// Liveness: is the app running? (used by Azure App Service health monitoring)
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false  // 不跑任何 check，只確認應用程式活著
+});
+
+// Readiness: are all dependencies healthy? (used by monitoring systems)
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = _ => true,  // 跑所有 check，包含 DB
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        var result = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(e => new
+            {
+                name = e.Key,
+                status = e.Value.Status.ToString(),
+                description = e.Value.Description
+            })
+        });
+        await context.Response.WriteAsync(result);
+    }
+});
 
 app.MapGraphQL();
 
