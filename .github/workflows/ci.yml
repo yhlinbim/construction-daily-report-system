@@ -118,13 +118,23 @@ jobs:
     - name: Wait for app to start
       run: sleep 30
 
-    - name: Health check
+    - name: Liveness check
       run: |
-        response=$(curl -s -o /dev/null -w "%{http_code}" \
-          https://cdrs-poc-hansl-hnh3gvavdsf7b3a5.australiaeast-01.azurewebsites.net/health)
-        echo "Health check response: $response"
+        response=$(curl -s -o /dev/null -w "%{http_code}" -L \
+          https://cdrs-poc-hansl-hnh3gvavdsf7b3a5.australiaeast-01.azurewebsites.net/health/live)
+        echo "Liveness response: $response"
         if [ "$response" != "200" ]; then
-          echo "Health check failed with status $response"
+          echo "Liveness check failed with status $response"
+          exit 1
+        fi
+
+    - name: Readiness check
+      run: |
+        response=$(curl -s -o /dev/null -w "%{http_code}" -L \
+          https://cdrs-poc-hansl-hnh3gvavdsf7b3a5.australiaeast-01.azurewebsites.net/health/ready)
+        echo "Readiness response: $response"
+        if [ "$response" != "200" ]; then
+          echo "Readiness check failed with status $response"
           exit 1
         fi
 
