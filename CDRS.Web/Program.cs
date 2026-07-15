@@ -12,14 +12,6 @@ using System.Text;
 using CDRS.Web.GraphQL;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
-    .Enrich.FromLogContext()
-    .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter())
-    .CreateBootstrapLogger();
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, services, configuration) =>

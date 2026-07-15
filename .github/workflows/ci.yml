@@ -31,9 +31,9 @@ jobs:
     - name: Build solution
       run: dotnet build ConstructionDailyReport.sln --no-restore --configuration Release
 
-    - name: Run unit tests
+    - name: Run unit and integration tests
       run: >
-        dotnet test CDRS.UnitTests/CDRS.UnitTests.csproj
+        dotnet test CDRS.UnitTests/CDRS.Tests.csproj
         --no-build
         --configuration Release
         --verbosity normal

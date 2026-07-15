@@ -15,27 +15,14 @@ namespace CDRS.UnitTests.Integration
     /// Tests verify HTTP routing and response codes.
     /// InMemory database replaces real SQL connection for test isolation.
     /// </summary>
-    public class ReportControllerTests : IClassFixture<WebApplicationFactory<Program>>
+    public class ReportControllerTests : IClassFixture<CustomWebApplicationFactory>
     {
-        private readonly WebApplicationFactory<Program> _factory;
+        private readonly CustomWebApplicationFactory _factory;
         private readonly HttpClient _client;
 
-        public ReportControllerTests(WebApplicationFactory<Program> factory)
+        public ReportControllerTests(CustomWebApplicationFactory factory)
         {
-            _factory = factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-                    if (descriptor != null)
-                        services.Remove(descriptor);
-
-                    services.AddDbContext<AppDbContext>(options =>
-                        options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
-                });
-            });
-
+            _factory = factory;
             _client = _factory.CreateClient();
         }
 
