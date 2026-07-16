@@ -7,7 +7,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
-namespace CDRS.UnitTests.Application
+namespace CDRS.Tests.Application
 {
     /// <summary>
     /// Tests for DailyReportService.

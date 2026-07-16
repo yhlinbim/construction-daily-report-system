@@ -4,7 +4,7 @@ using CDRS.Infrastructure.Persistence;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 
-namespace CDRS.UnitTests.Integration
+namespace CDRS.Tests.Integration
 {
     /// <summary>
     /// Integration tests for DailyReportRepository.

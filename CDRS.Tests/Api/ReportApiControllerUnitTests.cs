@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
-namespace CDRS.UnitTests.Api
+namespace CDRS.Tests.Api
 {
     /// <summary>
     /// Unit tests for ReportApiController.
