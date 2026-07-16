@@ -3,7 +3,7 @@ using CDRS.Domain.Enums;
 using CDRS.Domain.Exceptions;
 using FluentAssertions;
 
-namespace CDRS.UnitTests.Domain
+namespace CDRS.Tests.Domain
 {
     /// <summary>
     /// Tests for DailyReport domain entity.

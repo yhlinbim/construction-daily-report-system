@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CDRS.Application", "CDRS.Ap
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CDRS.Infrastructure", "CDRS.Infrastructure\CDRS.Infrastructure.csproj", "{7E040220-3077-4C1A-B149-C7D15B8B0EE0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CDRS.Tests", "CDRS.UnitTests\CDRS.Tests.csproj", "{9CCB8735-DF0F-406D-A7B1-F8FD110975A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CDRS.Tests", "CDRS.Tests\CDRS.Tests.csproj", "{9CCB8735-DF0F-406D-A7B1-F8FD110975A3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "方案項目", "方案項目", "{4BF37118-F3CE-4BA5-9A77-6151755B09AC}"
 	ProjectSection(SolutionItems) = preProject

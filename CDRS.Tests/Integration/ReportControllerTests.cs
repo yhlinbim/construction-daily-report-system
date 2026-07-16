@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestPlatform.TestHost;
 using System.Net;
 
-namespace CDRS.UnitTests.Integration
+namespace CDRS.Tests.Integration
 {
     /// <summary>
     /// Integration tests for ReportController and ApprovalController.

@@ -33,7 +33,7 @@ jobs:
 
     - name: Run unit and integration tests
       run: >
-        dotnet test CDRS.UnitTests/CDRS.Tests.csproj
+        dotnet test CDRS.Tests/CDRS.Tests.csproj
         --no-build
         --configuration Release
         --verbosity normal

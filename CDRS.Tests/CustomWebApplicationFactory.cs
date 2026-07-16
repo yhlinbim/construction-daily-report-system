@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
-namespace CDRS.UnitTests
+namespace CDRS.Tests
 {
     public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
