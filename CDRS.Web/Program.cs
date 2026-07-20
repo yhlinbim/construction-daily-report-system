@@ -12,6 +12,7 @@ using System.Text;
 using CDRS.Web.GraphQL;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Threading.RateLimiting;
+using Asp.Versioning;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -106,6 +107,19 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
+// API Versioning
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+})
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -173,7 +187,10 @@ if (app.Environment.IsDevelopment())
 //if (app.Environment.IsDevelopment())
 //{
 app.UseSwagger();
-    app.UseSwaggerUI();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CDRS API v1");
+});
 //}
 
 app.UseHttpsRedirection();
