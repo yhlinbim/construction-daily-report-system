@@ -1,4 +1,5 @@
-﻿using CDRS.Application.Interfaces;
+﻿using Asp.Versioning;
+using CDRS.Application.Interfaces;
 using CDRS.Domain.Entities;
 using CDRS.Domain.Exceptions;
 using CDRS.Web.Auth;
@@ -8,7 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace CDRS.Web.Controllers
 {
     [ApiController]
-    [Route("api/reports")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/reports")]
     [Authorize]
     public class ReportApiController : ControllerBase
     {
