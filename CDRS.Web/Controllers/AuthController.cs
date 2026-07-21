@@ -1,8 +1,10 @@
-﻿using CDRS.Web.Auth;
+﻿using Asp.Versioning;
+using CDRS.Web.Auth;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CDRS.Web.Controllers
 {
+    [ApiVersionNeutral]
     [ApiController]
     [Route("api/auth")]
     public class AuthController : ControllerBase

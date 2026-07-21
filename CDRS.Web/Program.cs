@@ -111,7 +111,7 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddApiVersioning(options =>
 {
     options.DefaultApiVersion = new ApiVersion(1, 0);
-    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.AssumeDefaultVersionWhenUnspecified = false;
     options.ReportApiVersions = true;
 })
 .AddApiExplorer(options =>
@@ -127,8 +127,15 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new()
     {
         Title = "Construction Daily Report API",
-        Version = "v1",
-        Description = "API for managing construction site daily reports and approval workflows"
+        Version = "v1 (Deprecated)",
+        Description = "V1 is deprecated. Please migrate to v2."
+    });
+
+    c.SwaggerDoc("v2", new()
+    {
+        Title = "Construction Daily Report API",
+        Version = "v2",
+        Description = "Status field is now a string. StatusCode field added."
     });
 
     // JWT Bearer ³]©w
@@ -189,7 +196,8 @@ if (app.Environment.IsDevelopment())
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CDRS API v1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CDRS API v1 (Deprecated)");
+    c.SwaggerEndpoint("/swagger/v2/swagger.json", "CDRS API v2");
 });
 //}
 

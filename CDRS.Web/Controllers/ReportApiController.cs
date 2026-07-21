@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CDRS.Web.Controllers
 {
     [ApiController]
-    [ApiVersion("1.0")]
+    [ApiVersion("1.0", Deprecated = true)]
     [Route("api/v{version:apiVersion}/reports")]
     [Authorize]
     public class ReportApiController : ControllerBase
