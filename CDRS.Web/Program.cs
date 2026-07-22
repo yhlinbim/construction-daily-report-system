@@ -13,6 +13,7 @@ using CDRS.Web.GraphQL;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
+using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,27 +52,32 @@ builder.Services.AddScoped<IDailyReportRepository, DailyReportRepository>();
 builder.Services.AddScoped<IDailyReportService, DailyReportService>();
 
 // JWT Authentication
-builder.Services.AddAuthentication(options =>
+// Azure AD JWT（Only enable in Non-Testing environment）
+if (!builder.Environment.IsEnvironment("Testing"))
 {
-    options.DefaultAuthenticateScheme =
-        JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme =
-        JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+}
+else
 {
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings.Issuer,
-        ValidAudience = jwtSettings.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
-    };
-});
+    // Testing 環境用自建 JWT（讓 integration test 繼續運作）
+    var testingJwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = testingJwtSettings.Issuer,
+                ValidAudience = testingJwtSettings.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(testingJwtSettings.SecretKey))
+            };
+        });
+}
 
 builder.Services.AddAuthorization();
 
