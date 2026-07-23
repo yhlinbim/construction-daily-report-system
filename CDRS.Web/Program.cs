@@ -13,6 +13,7 @@ using CDRS.Web.GraphQL;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
+using Azure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,22 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
         .Enrich.FromLogContext()
         .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter()));
+
+// Azure Key Vault¡]Only enable in Testing environment¡^
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    try
+    {
+        var keyVaultUri = new Uri("https://cdrs-kv-hansl.vault.azure.net/");
+        builder.Configuration.AddAzureKeyVault(
+            keyVaultUri,
+            new DefaultAzureCredential());
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Key Vault connection failed: {ex.Message}");
+    }
+}
 
 // JWT Settings
 var jwtSettings = builder.Configuration
