@@ -31,6 +31,32 @@ var jwtSettings = builder.Configuration
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddSingleton<TokenService>();
 
+// CORS ¡X load allowed origins from configuration
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
+
+// CORS ¡X allow requests from known frontend origins
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        if (allowedOrigins.Length > 0)
+        {
+            policy
+                .WithOrigins(allowedOrigins)
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        }
+        else
+        {
+            // No origins configured ¡X reject all cross-origin requests
+            policy.SetIsOriginAllowed(_ => false);
+        }
+    });
+});
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
@@ -205,6 +231,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseCors("AllowFrontend");  // must be after UseRouting and before UseAuthentication
 
 app.UseAuthentication();
 

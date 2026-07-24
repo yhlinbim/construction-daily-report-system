@@ -231,5 +231,47 @@ namespace CDRS.Tests.Integration
             report.GetProperty("status").GetInt32().Should().Be(0); // Draft
             report.GetProperty("workerCount").GetInt32().Should().Be(5);
         }
+
+        // =============================================
+        // CORS tests
+        // =============================================
+
+        [Fact]
+        public async Task GetByProject_WithAllowedOrigin_ShouldReturnCorsHeader()
+        {
+            // Arrange
+            var client = CreateClientWithToken("Worker");
+            client.DefaultRequestHeaders.Add("Origin", "http://localhost:3000");
+
+            // Act
+            var response = await client.GetAsync("/api/v1/reports/PROJ-001");
+
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.Headers.Should().ContainKey("Access-Control-Allow-Origin");
+            response.Headers.GetValues("Access-Control-Allow-Origin")
+                .First().Should().Be("http://localhost:3000");
+        }
+
+        [Fact]
+        public async Task Preflight_WithAllowedOrigin_ShouldReturn204WithCorsHeaders()
+        {
+            // Arrange — simulate browser preflight request
+            var client = CreateClientWithoutToken();
+            var request = new HttpRequestMessage(
+                HttpMethod.Options, "/api/v1/reports/PROJ-001");
+            request.Headers.Add("Origin", "http://localhost:3000");
+            request.Headers.Add("Access-Control-Request-Method", "GET");
+            request.Headers.Add("Access-Control-Request-Headers", "Authorization");
+
+            // Act
+            var response = await client.SendAsync(request);
+
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            response.Headers.Should().ContainKey("Access-Control-Allow-Origin");
+            response.Headers.GetValues("Access-Control-Allow-Origin")
+                .First().Should().Be("http://localhost:3000");
+        }
     }
 }
