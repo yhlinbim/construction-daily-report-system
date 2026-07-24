@@ -24,6 +24,9 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .Enrich.FromLogContext()
         .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter()));
 
+// Azure Application Insights
+builder.Services.AddApplicationInsightsTelemetry();
+
 // JWT Settings
 var jwtSettings = builder.Configuration
     .GetSection("JwtSettings")
