@@ -12,6 +12,14 @@ namespace CDRS.Application.Interfaces
         Task<DailyReport?> GetByIdAsync(Guid id, CancellationToken ct = default);
         Task<List<DailyReport>> GetByProjectIdAsync(string projectId, CancellationToken ct = default);
         Task<List<DailyReport>> GetPendingReviewAsync(CancellationToken ct = default);
+
+        /// <summary>
+        /// Retrieves all daily reports in the system, with no filtering.
+        /// Intended for background/administrative scans, not for
+        /// user-facing list views (which should filter by project or status).
+        /// </summary>
+        Task<List<DailyReport>> GetAllAsync(CancellationToken ct = default);
+
         Task AddAsync(DailyReport report, CancellationToken ct = default);
         Task SaveChangesAsync(CancellationToken ct = default);
     }

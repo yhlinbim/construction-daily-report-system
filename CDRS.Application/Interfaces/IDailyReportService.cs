@@ -21,5 +21,12 @@ namespace CDRS.Application.Interfaces
         Task<List<DailyReport>> GetProjectReportsAsync(string projectId, CancellationToken ct = default);
         Task<List<DailyReport>> GetPendingReviewsAsync(CancellationToken ct = default);
         Task StartReviewAsync(Guid reportId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Retrieves all daily reports across all projects, regardless of status.
+        /// Used by the background monitoring service to scan for stale reports
+        /// that have been sitting in a pending state too long.
+        /// </summary>
+        Task<List<DailyReport>> GetAllReportsAsync(CancellationToken ct = default);
     }
 }

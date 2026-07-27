@@ -30,6 +30,12 @@ namespace CDRS.Infrastructure.Persistence
                 .OrderBy(r => r.CreatedAtUtc)
                 .ToListAsync(ct);
 
+        public async Task<List<DailyReport>> GetAllAsync(CancellationToken ct = default)
+            => await _context.DailyReports
+                .AsNoTracking()
+                .OrderByDescending(r => r.CreatedAtUtc)
+                .ToListAsync(ct);
+
         public async Task AddAsync(DailyReport report, CancellationToken ct = default)
             => await _context.DailyReports.AddAsync(report, ct);
 

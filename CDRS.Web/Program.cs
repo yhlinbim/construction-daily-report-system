@@ -13,6 +13,7 @@ using CDRS.Web.GraphQL;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
+using CDRS.Web.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,6 +79,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Repository & Service (DIP in action)
 builder.Services.AddScoped<IDailyReportRepository, DailyReportRepository>();
 builder.Services.AddScoped<IDailyReportService, DailyReportService>();
+// Background Services
+builder.Services.AddHostedService<StaleReportDetectionService>();
 
 // JWT Authentication
 builder.Services.AddAuthentication(options =>
