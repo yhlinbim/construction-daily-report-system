@@ -23,7 +23,8 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
         .Enrich.FromLogContext()
-        .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter()));
+        .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter()),
+    writeToProviders: true);
 
 // Azure Application Insights
 builder.Services.AddApplicationInsightsTelemetry();
