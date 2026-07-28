@@ -1,33 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<coverage line-rate="0.8992" branch-rate="0.9545" version="1.9" timestamp="1784884556" lines-covered="116" lines-valid="129" branches-covered="21" branches-valid="22">
+<coverage line-rate="0.9" branch-rate="0.9545" version="1.9" timestamp="1785144398" lines-covered="117" lines-valid="130" branches-covered="21" branches-valid="22">
   <sources>
     <source>D:/source/repos/ConstructionDailyReport/</source>
   </sources>
   <packages>
-    <package name="CDRS.Application" line-rate="0.8856999999999999" branch-rate="1" complexity="10">
+    <package name="CDRS.Application" line-rate="0.8873000000000001" branch-rate="1" complexity="11">
       <classes>
         <class name="CDRS.Application.Services.DailyReportService" filename="CDRS.Application/Services/DailyReportService.cs" line-rate="1" branch-rate="1" complexity="1">
           <methods>
             <method name=".ctor" signature="(CDRS.Application.Interfaces.IDailyReportRepository,Microsoft.Extensions.Logging.ILogger`1&lt;CDRS.Application.Services.DailyReportService&gt;)" line-rate="1" branch-rate="1" complexity="1">
               <lines>
-                <line number="17" hits="26" branch="False" />
-                <line number="18" hits="26" branch="False" />
-                <line number="19" hits="26" branch="False" />
-                <line number="20" hits="26" branch="False" />
-                <line number="21" hits="26" branch="False" />
-                <line number="22" hits="26" branch="False" />
-                <line number="23" hits="26" branch="False" />
+                <line number="17" hits="29" branch="False" />
+                <line number="18" hits="29" branch="False" />
+                <line number="19" hits="29" branch="False" />
+                <line number="20" hits="29" branch="False" />
+                <line number="21" hits="29" branch="False" />
+                <line number="22" hits="29" branch="False" />
+                <line number="23" hits="29" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="17" hits="26" branch="False" />
-            <line number="18" hits="26" branch="False" />
-            <line number="19" hits="26" branch="False" />
-            <line number="20" hits="26" branch="False" />
-            <line number="21" hits="26" branch="False" />
-            <line number="22" hits="26" branch="False" />
-            <line number="23" hits="26" branch="False" />
+            <line number="17" hits="29" branch="False" />
+            <line number="18" hits="29" branch="False" />
+            <line number="19" hits="29" branch="False" />
+            <line number="20" hits="29" branch="False" />
+            <line number="21" hits="29" branch="False" />
+            <line number="22" hits="29" branch="False" />
+            <line number="23" hits="29" branch="False" />
           </lines>
         </class>
         <class name="CDRS.Application.Services.DailyReportService/&lt;ApproveReportAsync&gt;d__5" filename="CDRS.Application/Services/DailyReportService.cs" line-rate="1" branch-rate="1" complexity="1">
@@ -98,6 +98,18 @@
             <line number="48" hits="5" branch="False" />
             <line number="50" hits="5" branch="False" />
             <line number="51" hits="5" branch="False" />
+          </lines>
+        </class>
+        <class name="CDRS.Application.Services.DailyReportService/&lt;GetAllReportsAsync&gt;d__11" filename="CDRS.Application/Services/DailyReportService.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name="MoveNext" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="151" hits="3" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="151" hits="3" branch="False" />
           </lines>
         </class>
         <class name="CDRS.Application.Services.DailyReportService/&lt;GetPendingReviewsAsync&gt;d__8" filename="CDRS.Application/Services/DailyReportService.cs" line-rate="1" branch-rate="1" complexity="1">

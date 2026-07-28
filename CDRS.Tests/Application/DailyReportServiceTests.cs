@@ -243,5 +243,26 @@ namespace CDRS.Tests.Application
                 r => r.GetPendingReviewAsync(It.IsAny<CancellationToken>()),
                 Times.Once);
         }
+
+        // =============================================
+        // GetAllReportsAsync tests
+        // =============================================
+
+        [Fact]
+        public async Task GetAllReportsAsync_ShouldDelegateToRepository()
+        {
+            // Arrange
+            _repositoryMock
+                .Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<DailyReport>());
+
+            // Act
+            await _service.GetAllReportsAsync();
+
+            // Assert — verify the correct repository method is called
+            _repositoryMock.Verify(
+                r => r.GetAllAsync(It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
     }
 }
