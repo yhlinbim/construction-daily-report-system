@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
 using Azure.Identity;
+using CDRS.Web.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,9 +24,14 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
         .Enrich.FromLogContext()
-        .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter()));
+        .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter()),
+    writeToProviders: true);
 
-// Azure Key Vault¡]Only enable in Testing environment¡^
+// Azure Application Insights
+builder.Services.AddApplicationInsightsTelemetry();
+
+// Azure Key Vault ¡X disabled in Testing environment to keep unit/integration
+// tests fast and isolated from external Azure dependencies
 if (!builder.Environment.IsEnvironment("Testing"))
 {
     try
@@ -48,6 +54,32 @@ var jwtSettings = builder.Configuration
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddSingleton<TokenService>();
 
+// CORS ¡X load allowed origins from configuration
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
+
+// CORS ¡X allow requests from known frontend origins
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        if (allowedOrigins.Length > 0)
+        {
+            policy
+                .WithOrigins(allowedOrigins)
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        }
+        else
+        {
+            // No origins configured ¡X reject all cross-origin requests
+            policy.SetIsOriginAllowed(_ => false);
+        }
+    });
+});
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
@@ -66,6 +98,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Repository & Service (DIP in action)
 builder.Services.AddScoped<IDailyReportRepository, DailyReportRepository>();
 builder.Services.AddScoped<IDailyReportService, DailyReportService>();
+// Background Services
+builder.Services.AddHostedService<StaleReportDetectionService>();
 
 // JWT Authentication
 builder.Services.AddAuthentication(options =>
@@ -222,6 +256,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseCors("AllowFrontend");  // must be after UseRouting and before UseAuthentication
 
 app.UseAuthentication();
 

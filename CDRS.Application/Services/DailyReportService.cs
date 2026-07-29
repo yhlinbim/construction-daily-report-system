@@ -142,5 +142,12 @@ namespace CDRS.Application.Services
                 "Report moved to under review. ReportId: {ReportId}, ProjectId: {ProjectId}",
                 reportId, report.ProjectId);
         }
+
+        /// <summary>
+        /// Retrieves all daily reports across all projects, regardless of status.
+        /// Primarily consumed by the StaleReportDetectionService background job.
+        /// </summary>
+        public async Task<List<DailyReport>> GetAllReportsAsync(CancellationToken ct = default)
+            => await _repository.GetAllAsync(ct);
     }
 }

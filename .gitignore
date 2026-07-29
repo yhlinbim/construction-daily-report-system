@@ -9,3 +9,5 @@ appsettings.Production.json
 # Test results and coverage reports 
 **/TestResults/ 
 CoverageReport/ 
+
+**/coverage.cobertura.xml
