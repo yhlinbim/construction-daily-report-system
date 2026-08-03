@@ -43,7 +43,18 @@ if (!builder.Environment.IsEnvironment("Testing"))
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Key Vault connection failed: {ex.Message}");
+        // Startup-time failures here are captured by Azure App Service's platform-level
+        // diagnostics and Key Vault's own Diagnostic Settings (Audit Logs in Log Analytics)
+        // ¡X no application-level logger (Serilog/ILogger) is available yet at this point
+        // in the pipeline, since builder.Build() hasn't run.
+        //
+        // Business decision: fail open ¡X fall back to appsettings/environment configuration
+        // rather than crash the application. This trades strict security posture for
+        // availability, which is acceptable for this POC. In a real production system,
+        // this would more likely fail closed instead, since a silent fallback to
+        // potentially stale configuration could mask a real security incident (e.g.
+        // Managed Identity permissions being revoked).
+        Console.Error.WriteLine($"[WARNING] Key Vault connection failed: {ex.Message}");
     }
 }
 
