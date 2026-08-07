@@ -16,10 +16,16 @@ namespace CDRS.Web.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if (!context.Request.Headers.TryGetValue(
-                CorrelationIdHeader, out var correlationId))
+            if (!context.Request.Headers.TryGetValue(CorrelationIdHeader, out var correlationId))
             {
                 correlationId = Guid.NewGuid().ToString();
+                // Write the generated ID back onto the Request headers too, not just
+                // the Response. Downstream code (e.g. GlobalExceptionMiddleware) reads
+                // from Request.Headers when building error responses — without this,
+                // any request that didn't already carry an X-Correlation-ID would show
+                // "none" in error payloads, even though the Response header and Serilog
+                // logs already have the real ID.
+                context.Request.Headers[CorrelationIdHeader] = correlationId.ToString();
             }
 
             context.Response.Headers.Append(CorrelationIdHeader, correlationId.ToString());
