@@ -118,8 +118,6 @@ namespace CDRS.Tests.Domain
             var report = CreateValidReport();
             report.Submit();
             var act = () => report.Approve();
-            //act.Should().Throw<DomainException>().WithMessage("*reviewed*");
-            // 改成這樣，匹配實際訊息
             act.Should().Throw<DomainException>().WithMessage("*under review*");
         }
 
