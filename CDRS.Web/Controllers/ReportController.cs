@@ -1,10 +1,19 @@
 ﻿using CDRS.Application.Interfaces;
 using CDRS.Domain.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
 namespace CDRS.Web.Controllers
 {
+    /// <summary>
+    /// MVC controller for construction site daily report management.
+    /// Requires authentication — all authenticated roles can view and
+    /// submit reports. Authorization is enforced here but the project
+    /// does not include a login UI; the primary interface is the
+    /// Swagger REST API.
+    /// </summary>
+    [Authorize]
     public class ReportController : Controller
     {
         private readonly IDailyReportService _reportService;

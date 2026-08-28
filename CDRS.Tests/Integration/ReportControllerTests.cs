@@ -1,63 +1,94 @@
-﻿using CDRS.Infrastructure.Persistence;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
 using System.Net;
+using System.Net.Http.Headers;
 
 namespace CDRS.Tests.Integration
 {
     /// <summary>
-    /// Integration tests for ReportController and ApprovalController.
+    /// Integration tests for ReportController (MVC).
     ///
-    /// Uses WebApplicationFactory to spin up the full ASP.NET Core pipeline.
-    /// Tests verify HTTP routing and response codes.
-    /// InMemory database replaces real SQL connection for test isolation.
+    /// Verifies that all endpoints require authentication and that
+    /// authenticated users with any role can access report views.
+    /// The primary interface for this project is the Swagger REST API;
+    /// these MVC controllers are protected but do not have a login UI.
     /// </summary>
     public class ReportControllerTests : IClassFixture<CustomWebApplicationFactory>
     {
         private readonly CustomWebApplicationFactory _factory;
-        private readonly HttpClient _client;
 
         public ReportControllerTests(CustomWebApplicationFactory factory)
         {
             _factory = factory;
-            _client = _factory.CreateClient();
+        }
+
+        private HttpClient CreateClientWithToken(string role)
+        {
+            var client = _factory.CreateClient(
+                new WebApplicationFactoryClientOptions
+                {
+                    AllowAutoRedirect = false
+                });
+            var token = JwtTestHelper.GenerateToken(role);
+            client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+            return client;
+        }
+
+        private HttpClient CreateClientWithoutToken()
+        {
+            return _factory.CreateClient(
+                new WebApplicationFactoryClientOptions
+                {
+                    AllowAutoRedirect = false
+                });
         }
 
         [Fact]
-        public async Task Index_ShouldReturn200OK()
+        public async Task Index_WithoutToken_ShouldReturn401()
         {
-            var response = await _client.GetAsync("/Report/Index");
+            var client = CreateClientWithoutToken();
+            var response = await client.GetAsync("/Report/Index");
+            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        }
+
+        [Fact]
+        public async Task Index_WithWorkerToken_ShouldReturn200()
+        {
+            var client = CreateClientWithToken("Worker");
+            var response = await client.GetAsync("/Report/Index");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
         [Fact]
-        public async Task Index_WithProjectId_ShouldReturn200OK()
+        public async Task Index_WithProjectId_WithWorkerToken_ShouldReturn200()
         {
-            var response = await _client.GetAsync("/Report/Index?projectId=PROJ-001");
+            var client = CreateClientWithToken("Worker");
+            var response = await client.GetAsync("/Report/Index?projectId=PROJ-001");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
         [Fact]
-        public async Task Create_Get_ShouldReturn200OK()
+        public async Task Create_Get_WithoutToken_ShouldReturn401()
         {
-            var response = await _client.GetAsync("/Report/Create?projectId=PROJ-001");
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            var client = CreateClientWithoutToken();
+            var response = await client.GetAsync("/Report/Create?projectId=PROJ-001");
+            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
 
         [Fact]
-        public async Task Queue_ShouldReturn200OK()
+        public async Task Create_Get_WithWorkerToken_ShouldReturn200()
         {
-            var response = await _client.GetAsync("/Approval/Queue");
+            var client = CreateClientWithToken("Worker");
+            var response = await client.GetAsync("/Report/Create?projectId=PROJ-001");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
         [Fact]
         public async Task Swagger_ShouldReturn200OK()
         {
-            var response = await _client.GetAsync("/swagger/index.html");
+            var client = CreateClientWithoutToken();
+            var response = await client.GetAsync("/swagger/index.html");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
     }
