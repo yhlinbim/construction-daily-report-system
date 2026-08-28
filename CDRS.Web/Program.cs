@@ -1,4 +1,4 @@
-using Serilog;
+ï»¿using Serilog;
 using Serilog.Events;
 using CDRS.Application.Interfaces;
 using CDRS.Application.Services;
@@ -30,7 +30,7 @@ builder.Host.UseSerilog((context, services, configuration) =>
 // Azure Application Insights
 builder.Services.AddApplicationInsightsTelemetry();
 
-// Azure Key Vault ¡X disabled in Testing environment to keep unit/integration
+// Azure Key Vault â€” disabled in Testing environment to keep unit/integration
 // tests fast and isolated from external Azure dependencies
 if (!builder.Environment.IsEnvironment("Testing"))
 {
@@ -45,10 +45,10 @@ if (!builder.Environment.IsEnvironment("Testing"))
     {
         // Startup-time failures here are captured by Azure App Service's platform-level
         // diagnostics and Key Vault's own Diagnostic Settings (Audit Logs in Log Analytics)
-        // ¡X no application-level logger (Serilog/ILogger) is available yet at this point
+        // â€” no application-level logger (Serilog/ILogger) is available yet at this point
         // in the pipeline, since builder.Build() hasn't run.
         //
-        // Business decision: fail open ¡X fall back to appsettings/environment configuration
+        // Business decision: fail open â€” fall back to appsettings/environment configuration
         // rather than crash the application. This trades strict security posture for
         // availability, which is acceptable for this POC. In a real production system,
         // this would more likely fail closed instead, since a silent fallback to
@@ -65,12 +65,12 @@ var jwtSettings = builder.Configuration
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddSingleton<TokenService>();
 
-// CORS ¡X load allowed origins from configuration
+// CORS â€” load allowed origins from configuration
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
     .Get<string[]>() ?? Array.Empty<string>();
 
-// CORS ¡X allow requests from known frontend origins
+// CORS â€” allow requests from known frontend origins
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -85,7 +85,7 @@ builder.Services.AddCors(options =>
         }
         else
         {
-            // No origins configured ¡X reject all cross-origin requests
+            // No origins configured â€” reject all cross-origin requests
             policy.SetIsOriginAllowed(_ => false);
         }
     });
@@ -94,7 +94,7 @@ builder.Services.AddCors(options =>
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Health checks ¡X includes DB connectivity check
+// Health checks â€” includes DB connectivity check
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<AppDbContext>("database");
 
@@ -200,7 +200,7 @@ builder.Services.AddSwaggerGen(c =>
         Description = "Status field is now a string. StatusCode field added."
     });
 
-    // JWT Bearer ³]©w
+    // JWT Bearer è¨­å®š
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -283,13 +283,13 @@ app.MapControllerRoute(
 // Liveness: is the app running? (used by Azure App Service health monitoring)
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
-    Predicate = _ => false  // ¤£¶]¥ô¦ó check¡A¥u½T»{À³¥Îµ{¦¡¬¡µÛ
+    Predicate = _ => false  // ä¸è·‘ä»»ä½• checkï¼Œåªç¢ºèªæ‡‰ç”¨ç¨‹å¼æ´»è‘—
 });
 
 // Readiness: are all dependencies healthy? (used by monitoring systems)
 app.MapHealthChecks("/health/ready", new HealthCheckOptions
 {
-    Predicate = _ => true,  // ¶]©Ò¦³ check¡A¥]§t DB
+    Predicate = _ => true,  // è·‘æ‰€æœ‰ checkï¼ŒåŒ…å« DB
     ResponseWriter = async (context, report) =>
     {
         context.Response.ContentType = "application/json";
