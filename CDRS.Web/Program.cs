@@ -140,6 +140,7 @@ builder.Services.AddAuthorization();
 // GraphQL
 builder.Services
     .AddGraphQLServer()
+    .AddAuthorization()
     .AddQueryType<ReportQuery>()
     .AddMutationType<ReportMutation>();
 
