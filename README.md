@@ -43,17 +43,19 @@ in a domain entity, enforce business rules, and test them in isolation.
 ## How it's structured
 
 ```
-Web (Controllers + API endpoints)
-    ↓
-Application (DailyReportService, interfaces)
-    ↓
-Infrastructure (EF Core, Repository)
-    ↓
-Domain (DailyReport — pure business logic, no dependencies)
+              Web  ──  controllers, REST + GraphQL, middleware
+             /   \
+            v     v
+  Application  <-  Infrastructure  ──  EF Core, repository
+       \             /                  (implements Application interfaces)
+        v           v
+            Domain  ──  DailyReport state machine, no dependencies
 ```
 
-The business rules live in the domain entity. The service layer
-coordinates the steps. Controllers just handle HTTP.
+Dependencies point inward. Domain depends on nothing; Application
+depends only on Domain; Infrastructure and Web depend on Application.
+The business rules live in the domain entity, the service layer
+coordinates the steps, and controllers just handle HTTP.
 
 ## Technology Stack
 
@@ -67,42 +69,59 @@ coordinates the steps. Controllers just handle HTTP.
 | Logging | Serilog (structured JSON) | Structured request logging |
 | Monitoring | Azure Application Insights | Production telemetry and alerting |
 | Authentication | JWT Bearer + RBAC | API security |
-| API | REST + GraphQL (Hot Chocolate) | Flexible query interface |
+| API | REST + GraphQL (Hot Chocolate) | Dual read/write API |
 | API Versioning | Asp.Versioning 8.1.0 | URL-based versioning (v1/v2) |
 | Rate Limiting | Fixed Window (60 req/min) | API protection |
 | Secret Management | Azure Key Vault + Managed Identity | Production secrets |
-| Containerisation | Docker (multi-stage build) | Portable deployment |
+| Containerisation | Docker (multi-stage build) | Portability exercise; CI-verified, not the deploy path |
 | CI/CD | GitHub Actions → Azure App Service | Automated build, test, and deploy |
 | Cloud | Azure App Service (Australia East) | Hosting |
 
 ## Engineering Practices
 
 - **Domain-driven design**: Aggregate with state machine, domain exceptions enforced at the domain layer
-- **Testing**: 73 unit + integration tests, AAA pattern, Moq for isolation; 80% coverage threshold enforced in CI
+- **Testing**: 95 unit and integration tests (AAA pattern, Moq for isolation); 80% average line-coverage threshold enforced in CI for the Domain and Application layers
 - **CI/CD**: Automated quality gate — failing tests block deployment; separate migration job before deploy
 - **Structured logging**: Serilog with Correlation ID middleware for end-to-end request tracing
 - **Security**: No secrets in source control; environment-based configuration; Azure Key Vault + Managed Identity for production secrets
-- **API design**: REST for write operations with JWT/RBAC; GraphQL for flexible read queries
+- **API design**: REST and GraphQL both expose reads and writes; every endpoint requires JWT authentication with role-based authorization — Workers file and submit reports, Supervisors and Project Managers review them
 - **API versioning**: URL-based versioning — v1 deprecated, v2 introduces breaking change (status as string)
 - **Rate limiting**: Fixed window (60 req/min) partitioned by user identity, falling back to IP
 - **CORS**: Configuration-driven allowed origins per environment — no hardcoded values
 - **Monitoring**: Azure Application Insights for request tracking, exception monitoring, and EF Core dependency telemetry
-- **Containerisation**: Multi-stage Dockerfile — tests run during build; failing tests block image creation
+- **Containerisation**: Multi-stage Dockerfile (restore → test → publish → slim runtime); `docker build` runs on every pull request with the test suite executing inside the build
 - **Project management**: Git feature-branch workflow, PR reviews with written technical decision rationale on every pull request, Jira Scrum board across 6 sprints
 
 Each pull request includes written rationale for the technical decisions made — see the PR history for the full record.
 
 ## Tests
 
-73 tests across all four layers — domain, service, repository, and controller.
-All passing in CI on every push. Coverage threshold of 80% enforced for Domain and Application layers.
+95 tests across the four layers — domain, application (services), infrastructure
+(repository), and web (controllers and GraphQL). All passing in CI on every push,
+and again inside the Docker build. An 80% average line-coverage threshold is
+enforced in CI, scoped to the Domain and Application layers.
 
 ## API Versions
 
 | Version | Status | Notes |
 |---------|--------|-------|
-| v1 | Deprecated | `status` field returns integer |
-| v2 | Active | `status` field returns string; `statusCode` added for backward reference |
+| v1 | Deprecated | `status` returns an integer; full read/write surface |
+| v2 | Active | `status` returns a string, `statusCode` added for reference; read-only — writes use v1 |
+
+## Out of scope
+
+Deliberate simplifications for a portfolio project:
+
+- **Authentication vs. identity** — JWT validation and role checks are enforced on every
+  endpoint, but `POST /api/auth/token` issues a token for any username with a valid role.
+  There is no user store or password check; user management is not modelled.
+- **Swagger is public** — served in every environment; the deployment smoke test depends on it.
+- **No optimistic concurrency** — the aggregate has no row-version token, so concurrent
+  edits are last-write-wins.
+- **No login UI** — the REST API and Swagger are the interface. The MVC views exist but
+  there is no sign-in page.
+- **One aggregate, linear workflow** — delegation, escalation, multi-step routing and
+  rejection-to-step (see *What it does*) are intentionally not built.
 
 ## Prerequisites
 
