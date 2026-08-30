@@ -1,5 +1,6 @@
 ﻿using CDRS.Application.Interfaces;
 using CDRS.Domain.Exceptions;
+using CDRS.Web.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,10 +9,10 @@ namespace CDRS.Web.Controllers
 {
     /// <summary>
     /// MVC controller for construction site daily report management.
-    /// Requires authentication — all authenticated roles can view and
-    /// submit reports. Authorization is enforced here but the project
-    /// does not include a login UI; the primary interface is the
-    /// Swagger REST API.
+    /// Any authenticated role can view reports; creating and submitting
+    /// them is restricted to Worker, matching ReportApiController and the
+    /// GraphQL mutations. There is no login UI — the primary interface is
+    /// the Swagger REST API.
     /// </summary>
     [Authorize]
     public class ReportController : Controller
@@ -34,6 +35,7 @@ namespace CDRS.Web.Controllers
             return View(reports);
         }
 
+        [Authorize(Roles = Roles.Worker)]
         public IActionResult Create(string projectId)
         {
             ViewBag.ProjectId = projectId;
@@ -42,6 +44,7 @@ namespace CDRS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = Roles.Worker)]
         public async Task<IActionResult> Create(
             string projectId, string siteWorkerId, DateTime reportDate,
             string workDescription, int workerCount, string weatherCondition)
@@ -65,6 +68,7 @@ namespace CDRS.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = Roles.Worker)]
         public async Task<IActionResult> Submit(Guid id, string projectId)
         {
             await _reportService.SubmitReportAsync(id);

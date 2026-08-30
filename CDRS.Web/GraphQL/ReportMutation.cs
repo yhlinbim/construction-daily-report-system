@@ -10,8 +10,8 @@ namespace CDRS.Web.GraphQL
     {
         /// <summary>
         /// Creates a new daily report via GraphQL Mutation.
-        /// Restricted to Worker role — mirrors the REST API authorization
-        /// on the report write endpoints.
+        /// Restricted to Worker — same contract as POST /api/v1/reports:
+        /// workers file reports, reviewers act on them.
         /// </summary>
         [Authorize(Roles = new[] { Roles.Worker })]
         public async Task<DailyReport> CreateReport(
@@ -31,8 +31,7 @@ namespace CDRS.Web.GraphQL
 
         /// <summary>
         /// Submits a report for review via GraphQL Mutation.
-        /// Restricted to Worker role — mirrors the REST API authorization
-        /// on the report write endpoints.
+        /// Restricted to Worker — same contract as POST /api/v1/reports/{id}/submit.
         /// </summary>
         [Authorize(Roles = new[] { Roles.Worker })]
         public async Task<MutationResult> SubmitReport(
