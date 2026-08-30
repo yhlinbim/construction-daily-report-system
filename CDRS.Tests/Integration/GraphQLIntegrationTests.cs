@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -8,10 +8,16 @@ namespace CDRS.Tests.Integration
 {
     /// <summary>
     /// Integration tests for the GraphQL endpoint.
-    /// Guards against the CDRA-66 regression where adding [Authorize] to
-    /// ReportMutation broke schema construction (every /graphql request
-    /// returned HTTP 500) because AddAuthorization() was never registered
-    /// on the GraphQL server.
+    ///
+    /// Covers two things:
+    /// 1. Schema construction — a regression guard for CDRA-66, where adding
+    ///    [Authorize] to ReportMutation broke the schema (every /graphql
+    ///    request returned HTTP 500) because AddAuthorization() was never
+    ///    registered on the GraphQL server.
+    /// 2. Authorization parity with the REST API (CDRA-67): queries and
+    ///    mutations must enforce the same rules as the equivalent REST
+    ///    endpoints — no anonymous data access, reviewer-only pending queue,
+    ///    worker-only writes.
     /// </summary>
     public class GraphQLIntegrationTests
         : IClassFixture<CustomWebApplicationFactory>
@@ -23,11 +29,37 @@ namespace CDRS.Tests.Integration
             _factory = factory;
         }
 
+        private HttpClient Client(string? role = null)
+        {
+            var client = _factory.CreateClient();
+            if (role is not null)
+            {
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", JwtTestHelper.GenerateToken(role));
+            }
+            return client;
+        }
+
         private static StringContent GraphQLBody(string query)
             => new(
                 JsonSerializer.Serialize(new { query }),
                 Encoding.UTF8,
                 "application/json");
+
+        private static async Task<(HttpStatusCode status, JsonDocument body)> PostAsync(
+            HttpClient client, string query)
+        {
+            var response = await client.PostAsync("/graphql", GraphQLBody(query));
+            var raw = await response.Content.ReadAsStringAsync();
+            raw.Should().NotContain("SchemaException",
+                "the GraphQL schema must always build (CDRA-66 regression guard)");
+            return (response.StatusCode, JsonDocument.Parse(raw));
+        }
+
+        private static string? FirstErrorCode(JsonDocument doc)
+            => doc.RootElement.TryGetProperty("errors", out var errors) && errors.GetArrayLength() > 0
+                ? errors[0].GetProperty("extensions").GetProperty("code").GetString()
+                : null;
 
         private const string CreateReportMutation = @"
             mutation {
@@ -41,64 +73,90 @@ namespace CDRS.Tests.Integration
               }) { id status }
             }";
 
+        private const string PendingReviewsQuery = "{ pendingReviews { id status } }";
+        private const string ReportsByProjectQuery = @"{ reportsByProject(projectId: ""PROJ-001"") { id } }";
+
+        // ---- schema construction ------------------------------------------------
+
         [Fact]
         public async Task Introspection_Anonymous_ShouldReturn200_SchemaLoads()
         {
-            var client = _factory.CreateClient();
+            var (status, body) = await PostAsync(Client(),
+                "{ __schema { queryType { name } mutationType { name } } }");
 
-            var response = await client.PostAsync(
-                "/graphql",
-                GraphQLBody("{ __schema { queryType { name } mutationType { name } } }"));
+            status.Should().Be(HttpStatusCode.OK);
+            body.RootElement.GetProperty("data").GetProperty("__schema")
+                .GetProperty("mutationType").GetProperty("name")
+                .GetString().Should().NotBeNullOrEmpty();
+        }
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+        // ---- query authorization (CDRA-67) ------------------------------------
 
-            var body = await response.Content.ReadAsStringAsync();
-            body.Should().NotContain("SchemaException");
-            body.Should().Contain("mutationType");
+        [Fact]
+        public async Task ReportsByProject_Anonymous_ShouldBeDenied()
+        {
+            var (_, body) = await PostAsync(Client(), ReportsByProjectQuery);
+            FirstErrorCode(body).Should().Be("AUTH_NOT_AUTHORIZED");
         }
 
         [Fact]
-        public async Task CreateReport_WithoutToken_ShouldReturnAuthorizationError()
+        public async Task ReportsByProject_WithWorkerToken_ShouldSucceed()
         {
-            var client = _factory.CreateClient();
+            var (_, body) = await PostAsync(Client("Worker"), ReportsByProjectQuery);
 
-            var response = await client.PostAsync("/graphql", GraphQLBody(CreateReportMutation));
-
-            var body = await response.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(body);
-
-            doc.RootElement.TryGetProperty("errors", out var errors).Should().BeTrue(
-                "an unauthenticated mutation must be rejected");
-            errors.GetArrayLength().Should().BeGreaterThan(0);
-
-            // The failure must be an authorization denial, not a schema build error.
-            body.Should().NotContain("SchemaException");
-            var code = errors[0].GetProperty("extensions").GetProperty("code").GetString();
-            code.Should().Be("AUTH_NOT_AUTHORIZED");
+            FirstErrorCode(body).Should().BeNull();
+            body.RootElement.GetProperty("data").GetProperty("reportsByProject")
+                .ValueKind.Should().Be(JsonValueKind.Array);
         }
 
         [Fact]
-        public async Task CreateReport_WithWorkerToken_ShouldBeAccepted_NotSchemaError()
+        public async Task PendingReviews_Anonymous_ShouldBeDenied()
         {
-            var client = _factory.CreateClient();
-            client.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", JwtTestHelper.GenerateToken("Worker"));
+            var (_, body) = await PostAsync(Client(), PendingReviewsQuery);
+            FirstErrorCode(body).Should().Be("AUTH_NOT_AUTHORIZED");
+        }
 
-            var response = await client.PostAsync("/graphql", GraphQLBody(CreateReportMutation));
+        [Fact]
+        public async Task PendingReviews_WithWorkerToken_ShouldBeDenied()
+        {
+            var (_, body) = await PostAsync(Client("Worker"), PendingReviewsQuery);
+            FirstErrorCode(body).Should().Be("AUTH_NOT_AUTHORIZED");
+        }
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+        [Fact]
+        public async Task PendingReviews_WithSupervisorToken_ShouldSucceed()
+        {
+            var (_, body) = await PostAsync(Client("Supervisor"), PendingReviewsQuery);
 
-            var body = await response.Content.ReadAsStringAsync();
-            body.Should().NotContain("SchemaException");
+            FirstErrorCode(body).Should().BeNull();
+            body.RootElement.GetProperty("data").GetProperty("pendingReviews")
+                .ValueKind.Should().Be(JsonValueKind.Array);
+        }
 
-            using var doc = JsonDocument.Parse(body);
-            if (doc.RootElement.TryGetProperty("errors", out var errors)
-                && errors.GetArrayLength() > 0)
-            {
-                // A Worker is authorized, so any error must not be an auth denial.
-                var code = errors[0].GetProperty("extensions").GetProperty("code").GetString();
-                code.Should().NotBe("AUTH_NOT_AUTHORIZED");
-            }
+        // ---- mutation authorization -----------------------------------------
+
+        [Fact]
+        public async Task CreateReport_Anonymous_ShouldBeDenied()
+        {
+            var (_, body) = await PostAsync(Client(), CreateReportMutation);
+            FirstErrorCode(body).Should().Be("AUTH_NOT_AUTHORIZED");
+        }
+
+        [Fact]
+        public async Task CreateReport_WithSupervisorToken_ShouldBeDenied()
+        {
+            var (_, body) = await PostAsync(Client("Supervisor"), CreateReportMutation);
+            FirstErrorCode(body).Should().Be("AUTH_NOT_AUTHORIZED");
+        }
+
+        [Fact]
+        public async Task CreateReport_WithWorkerToken_ShouldBeAccepted()
+        {
+            var (status, body) = await PostAsync(Client("Worker"), CreateReportMutation);
+
+            status.Should().Be(HttpStatusCode.OK);
+            // A Worker is authorized — any error must not be an auth denial.
+            FirstErrorCode(body).Should().NotBe("AUTH_NOT_AUTHORIZED");
         }
     }
 }

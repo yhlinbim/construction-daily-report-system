@@ -50,6 +50,7 @@ namespace CDRS.Web.Controllers
         /// Create a new daily report
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = Roles.Worker)]
         public async Task<ActionResult<DailyReport>> Create([FromBody] CreateReportRequest request)
         {
             var report = await _reportService.CreateReportAsync(
@@ -68,6 +69,7 @@ namespace CDRS.Web.Controllers
         /// Submit a report for review
         /// </summary>
         [HttpPost("{id}/submit")]
+        [Authorize(Roles = Roles.Worker)]
         public async Task<IActionResult> Submit(Guid id)
         {
             await _reportService.SubmitReportAsync(id);

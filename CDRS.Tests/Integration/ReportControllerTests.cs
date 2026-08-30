@@ -8,10 +8,12 @@ namespace CDRS.Tests.Integration
     /// <summary>
     /// Integration tests for ReportController (MVC).
     ///
-    /// Verifies that all endpoints require authentication and that
-    /// authenticated users with any role can access report views.
-    /// The primary interface for this project is the Swagger REST API;
-    /// these MVC controllers are protected but do not have a login UI.
+    /// Verifies that all endpoints require authentication, that any
+    /// authenticated role can view reports, and that creating a report
+    /// is restricted to Worker (matching ReportApiController and the
+    /// GraphQL mutations). The primary interface for this project is the
+    /// Swagger REST API; these MVC controllers are protected but do not
+    /// have a login UI.
     /// </summary>
     public class ReportControllerTests : IClassFixture<CustomWebApplicationFactory>
     {
@@ -82,6 +84,14 @@ namespace CDRS.Tests.Integration
             var client = CreateClientWithToken("Worker");
             var response = await client.GetAsync("/Report/Create?projectId=PROJ-001");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task Create_Get_WithSupervisorToken_ShouldReturn403()
+        {
+            var client = CreateClientWithToken("Supervisor");
+            var response = await client.GetAsync("/Report/Create?projectId=PROJ-001");
+            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
 
         [Fact]
