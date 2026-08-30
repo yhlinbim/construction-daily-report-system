@@ -60,6 +60,20 @@ jobs:
         name: webapp
         path: ./publish
 
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+
+    # Verifies the multi-stage Dockerfile builds and the test suite passes
+    # inside the build stage. Build only - no registry push, no deployment.
+    # The hosted demo deploys via `dotnet publish` to Azure App Service.
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build image
+      run: docker build -t cdrs:ci .
+
   migrate:
     name: Run Database Migrations
     runs-on: ubuntu-latest
