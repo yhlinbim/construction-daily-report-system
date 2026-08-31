@@ -65,13 +65,22 @@ var jwtSettings = builder.Configuration
     .GetSection("JwtSettings")
     .Get<JwtSettings>()!;
 
-// In Development, generate an ephemeral signing key when none is configured
-// so `dotnet run` works with no setup; tokens do not survive a restart.
-// (Fail-fast for a missing key outside Development is tracked in CDRA-71.)
-if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey) && builder.Environment.IsDevelopment())
+// A signing key is mandatory. In Development, generate an ephemeral key so
+// `dotnet run` works with no setup (tokens do not survive a restart).
+// Anywhere else, a missing key is a fatal misconfiguration (e.g. Key Vault
+// unavailable) and the app must not start with an unusable key.
+if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey))
 {
-    jwtSettings.SecretKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
-    Console.WriteLine("[dev] No JwtSettings:SecretKey configured - generated an ephemeral key for this run.");
+    if (builder.Environment.IsDevelopment())
+    {
+        jwtSettings.SecretKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        Console.WriteLine("[dev] No JwtSettings:SecretKey configured - generated an ephemeral key for this run.");
+    }
+    else
+    {
+        throw new InvalidOperationException(
+            "JwtSettings:SecretKey is not configured. Provide it via configuration or Key Vault.");
+    }
 }
 
 builder.Services.AddSingleton(jwtSettings);
@@ -222,14 +231,15 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Construction Daily Report API",
         Version = "v1 (Deprecated)",
-        Description = "V1 is deprecated. Please migrate to v2."
+        Description = "Deprecated. Full read/write surface; migrate reads to v2."
     });
 
     c.SwaggerDoc("v2", new()
     {
         Title = "Construction Daily Report API",
         Version = "v2",
-        Description = "Status field is now a string. StatusCode field added."
+        Description = "Status is a string; statusCode added for reference. "
+            + "Read-only — create and state transitions use v1."
     });
 
     // JWT Bearer 設定

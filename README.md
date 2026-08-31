@@ -91,6 +91,8 @@ Deliberate simplifications for a portfolio project:
 - **Authentication vs. identity** — JWT validation and role checks are enforced on every
   endpoint, but `POST /api/auth/token` issues a token for any username with a valid role.
   There is no user store or password check; user management is not modelled.
+- **Role-based authorization only** — a Worker can act on any report, not just their own.
+  Per-record ownership checks would need the user model that is also out of scope.
 - **Swagger is public** — served in every environment; the deployment smoke test depends on it.
 - **No optimistic concurrency** — the aggregate has no row-version token, so concurrent
   edits are last-write-wins.

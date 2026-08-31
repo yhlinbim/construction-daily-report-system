@@ -9,11 +9,16 @@ namespace CDRS.Web.Controllers
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
-        private readonly TokenService _tokenService;
+        private static readonly string[] ValidRoles =
+            { Roles.Worker, Roles.Supervisor, Roles.ProjectManager };
 
-        public AuthController(TokenService tokenService)
+        private readonly TokenService _tokenService;
+        private readonly JwtSettings _jwtSettings;
+
+        public AuthController(TokenService tokenService, JwtSettings jwtSettings)
         {
             _tokenService = tokenService;
+            _jwtSettings = jwtSettings;
         }
 
         /// <summary>
@@ -25,20 +30,18 @@ namespace CDRS.Web.Controllers
         {
             // Demo only: accept any username with a valid role
             // Production would validate credentials against a database
-            var validRoles = new[] { "Worker", "Supervisor", "ProjectManager" };
-
             if (string.IsNullOrWhiteSpace(request.Username))
                 return BadRequest(new { error = "Username is required." });
 
-            if (!validRoles.Contains(request.Role))
-                return BadRequest(new { error = $"Role must be one of: {string.Join(", ", validRoles)}" });
+            if (!ValidRoles.Contains(request.Role))
+                return BadRequest(new { error = $"Role must be one of: {string.Join(", ", ValidRoles)}" });
 
             var token = _tokenService.GenerateToken(request.Username, request.Role);
 
             return Ok(new
             {
                 token,
-                expires_in = 60,
+                expires_in = _jwtSettings.ExpiryMinutes * 60,
                 token_type = "Bearer"
             });
         }

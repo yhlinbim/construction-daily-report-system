@@ -131,7 +131,7 @@ rejected. `POST /api/auth/token` issues tokens for the demo (see
 | Correlation IDs | `CorrelationIdMiddleware` — assigns an id, pushes it to Serilog and onto the request so error responses carry it |
 | Error handling | `GlobalExceptionMiddleware` — `DomainException` → 400, `KeyNotFoundException` → 404, everything else → 500 |
 | Structured logging | Serilog, compact JSON to console |
-| Rate limiting | Fixed window, 60 req/min, partitioned by user identity then forwarded IP |
+| Rate limiting | Fixed window, 60 req/min, partitioned by user identity, then `X-Forwarded-For`, then connection IP. The forwarded header is trusted because Azure App Service's front end overwrites it; set `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` if fronted by a different proxy |
 | Health checks | `/health/live` (liveness), `/health/ready` (readiness, includes the DB) |
 | Secrets | Azure Key Vault + Managed Identity in non-Development environments; skipped locally |
 | Telemetry | Azure Application Insights |
