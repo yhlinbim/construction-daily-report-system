@@ -6,9 +6,17 @@ appsettings.Development.json
 appsettings.Production.json 
 *.PublishSettings
  
-# Test results and coverage reports 
-**/TestResults/ 
-CoverageReport/ 
+# Test results and coverage reports
+**/TestResults/
+CoverageReport/
 
 **/coverage.cobertura.xml
 **/PublishProfiles/*.pubxml
+
+# Local development SQLite database
+*.db
+*.db-shm
+*.db-wal
+
+# Local environment overrides (docker-compose)
+.env
