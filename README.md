@@ -123,37 +123,40 @@ Deliberate simplifications for a portfolio project:
 - **One aggregate, linear workflow** — delegation, escalation, multi-step routing and
   rejection-to-step (see *What it does*) are intentionally not built.
 
-## Prerequisites
-
-- .NET 8 SDK
-- SQL Server LocalDB (Windows) or Docker (macOS/Linux)
-- EF Core CLI: `dotnet tool install --global dotnet-ef`
-
 ## Running locally
 
-**Windows:**
+### Quickest — no database
 
 ```bash
 git clone https://github.com/yhlinbim/construction-daily-report-system
 cd construction-daily-report-system
-dotnet restore
-dotnet ef database update --project CDRS.Infrastructure --startup-project CDRS.Web
 dotnet run --project CDRS.Web
 ```
 
-**macOS/Linux:** Start SQL Server via Docker before running migrations:
+In `Development` with no connection string configured, the app creates a
+local SQLite file (`CDRS.Web/cdrs-dev.db`, gitignored) and seeds a few
+sample reports. Open <http://localhost:5xxx/swagger> — the console prints
+the port. Delete the `.db` file to reset.
+
+Only the .NET 8 SDK is required.
+
+### With SQL Server via docker-compose
 
 ```bash
-docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourPassword123!" \
-  -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2022-latest
+cp .env.example .env      # then set MSSQL_SA_PASSWORD
+docker compose up --build
 ```
 
-Then update `appsettings.Development.json` with the connection string, run migrations, and start the app:
+App + SQL Server, EF Core migrations applied on start. App on
+<http://localhost:8080/swagger>.
+
+### With your own SQL Server
+
+Run SQL Server, then point the app at it and apply migrations:
 
 ```bash
-dotnet restore
+export ConnectionStrings__DefaultConnection="Server=localhost;Database=ConstructionDailyReportDb;User Id=sa;Password=...;TrustServerCertificate=True"
+dotnet tool install --global dotnet-ef
 dotnet ef database update --project CDRS.Infrastructure --startup-project CDRS.Web
 dotnet run --project CDRS.Web
 ```
-
-Then open `/swagger`.

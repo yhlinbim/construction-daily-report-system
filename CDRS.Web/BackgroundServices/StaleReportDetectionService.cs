@@ -31,10 +31,17 @@ namespace CDRS.Web.BackgroundServices
                 "StaleReportDetectionService started. Checking every {Interval} hours.",
                 _interval.TotalHours);
 
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                await DetectStaleReportsAsync(stoppingToken);
-                await Task.Delay(_interval, stoppingToken);
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    await DetectStaleReportsAsync(stoppingToken);
+                    await Task.Delay(_interval, stoppingToken);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Host is shutting down - expected, not an error.
             }
         }
 

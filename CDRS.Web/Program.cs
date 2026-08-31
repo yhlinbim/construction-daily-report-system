@@ -8,6 +8,7 @@ using CDRS.Web.Middleware;
 using CDRS.Web.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 using System.Text;
 using CDRS.Web.GraphQL;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -30,9 +31,10 @@ builder.Host.UseSerilog((context, services, configuration) =>
 // Azure Application Insights
 builder.Services.AddApplicationInsightsTelemetry();
 
-// Azure Key Vault — disabled in Testing environment to keep unit/integration
-// tests fast and isolated from external Azure dependencies
-if (!builder.Environment.IsEnvironment("Testing"))
+// Azure Key Vault — production secret source. Skipped in Development and
+// Testing so the app runs locally with no Azure credentials (and without a
+// DefaultAzureCredential probe on every start).
+if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Testing"))
 {
     try
     {
@@ -62,6 +64,21 @@ if (!builder.Environment.IsEnvironment("Testing"))
 var jwtSettings = builder.Configuration
     .GetSection("JwtSettings")
     .Get<JwtSettings>()!;
+
+// A signing key is mandatory. Outside Development a missing key is a fatal
+// misconfiguration (e.g. Key Vault unavailable) and the app must not start.
+// In Development, generate an ephemeral key so `dotnet run` works with no
+// configuration; tokens simply do not survive a restart.
+if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey))
+{
+    if (!builder.Environment.IsDevelopment())
+        throw new InvalidOperationException(
+            "JwtSettings:SecretKey is not configured. Provide it via configuration or Key Vault.");
+
+    jwtSettings.SecretKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+    Console.WriteLine("[dev] No JwtSettings:SecretKey configured - generated an ephemeral key for this run.");
+}
+
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddSingleton<TokenService>();
 
@@ -98,13 +115,32 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<AppDbContext>("database");
 
+// In Development with no connection string configured, fall back to a local
+// SQLite file so the app runs with zero setup. A real relational provider -
+// unlike the in-memory provider - so behaviour matches SQL Server closely.
+// Any other environment, and Development once a connection string is set,
+// use SQL Server.
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var useSqliteDevDb = builder.Environment.IsDevelopment()
+    && string.IsNullOrWhiteSpace(connectionString);
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlOptions => sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(30),
-            errorNumbersToAdd: null)));
+{
+    if (useSqliteDevDb)
+    {
+        var dbPath = System.IO.Path.Combine(builder.Environment.ContentRootPath, "cdrs-dev.db");
+        options.UseSqlite($"Data Source={dbPath}");
+    }
+    else
+    {
+        options.UseSqlServer(
+            connectionString,
+            sqlOptions => sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null));
+    }
+});
 
 // Repository & Service (DIP in action)
 builder.Services.AddScoped<IDailyReportRepository, DailyReportRepository>();
@@ -240,17 +276,25 @@ app.UseSerilogRequestLogging(options =>
         "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000}ms";
 });
 
-// Auto-apply migrations on startup in development environment only.
-// In production, migrations are executed as a dedicated CI/CD pipeline step
-// before deployment to prevent race conditions with multiple app instances.
+// Prepare the database on startup in Development only. In production,
+// migrations run as a dedicated CI/CD step before deployment to avoid
+// race conditions across multiple app instances.
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    if (db.Database.IsRelational())
+
+    if (useSqliteDevDb)
+    {
+        // Migrations target SQL Server; build the SQLite dev schema from the model.
+        db.Database.EnsureCreated();
+    }
+    else if (db.Database.IsRelational())
     {
         db.Database.Migrate();
     }
+
+    DevelopmentDataSeeder.Seed(db);
 }
 
 // Configure the HTTP request pipeline.
