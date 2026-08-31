@@ -96,6 +96,11 @@ jobs:
       run: dotnet tool install --global dotnet-ef
 
     - name: Run migrations
+      # Pin the environment so the startup project resolves the SQL Server
+      # provider (Development falls back to a local SQLite file) and skips
+      # the Key Vault load. The target database comes from --connection.
+      env:
+        ASPNETCORE_ENVIRONMENT: Testing
       run: |
         dotnet ef database update \
           --project CDRS.Infrastructure \
