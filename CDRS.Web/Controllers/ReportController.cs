@@ -71,8 +71,16 @@ namespace CDRS.Web.Controllers
         [Authorize(Roles = Roles.Worker)]
         public async Task<IActionResult> Submit(Guid id, string projectId)
         {
-            await _reportService.SubmitReportAsync(id);
-            TempData["Success"] = "Report submitted for review.";
+            try
+            {
+                await _reportService.SubmitReportAsync(id);
+                TempData["Success"] = "Report submitted for review.";
+            }
+            catch (DomainException ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
             return RedirectToAction(nameof(Index), new { projectId });
         }
     }
