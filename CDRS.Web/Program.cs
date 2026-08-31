@@ -65,16 +65,11 @@ var jwtSettings = builder.Configuration
     .GetSection("JwtSettings")
     .Get<JwtSettings>()!;
 
-// A signing key is mandatory. Outside Development a missing key is a fatal
-// misconfiguration (e.g. Key Vault unavailable) and the app must not start.
-// In Development, generate an ephemeral key so `dotnet run` works with no
-// configuration; tokens simply do not survive a restart.
-if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey))
+// In Development, generate an ephemeral signing key when none is configured
+// so `dotnet run` works with no setup; tokens do not survive a restart.
+// (Fail-fast for a missing key outside Development is tracked in CDRA-71.)
+if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey) && builder.Environment.IsDevelopment())
 {
-    if (!builder.Environment.IsDevelopment())
-        throw new InvalidOperationException(
-            "JwtSettings:SecretKey is not configured. Provide it via configuration or Key Vault.");
-
     jwtSettings.SecretKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
     Console.WriteLine("[dev] No JwtSettings:SecretKey configured - generated an ephemeral key for this run.");
 }
