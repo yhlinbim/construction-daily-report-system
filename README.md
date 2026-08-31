@@ -8,37 +8,19 @@ Swagger UI: https://cdrs-poc-hansl-hnh3gvavdsf7b3a5.australiaeast-01.azurewebsit
 
 Running on Azure App Service (Australia East), deployed automatically via GitHub Actions.
 
-## Background
-
-Approval workflows in enterprise environments are often spread across
-multiple layers — application code handles some logic, stored procedures
-handle data access and transformations, platform configuration handles
-routing. It works, but the business rules are scattered and hard to test.
-
-I built this to explore what the same workflow looks like when the
-business rules are consolidated in a domain entity with a clear state
-machine, properly layered with Clean Architecture, and covered by
-automated tests. The construction site daily report is the domain
-context; the engineering practices are the point.
-
-This is a side project applying modern .NET practices —
-Clean Architecture, automated testing, and CI/CD — to a
-business domain I know from real-world construction IT work.
-
 ## What it does
 
-A simplified approval workflow for construction site daily reports,
-modelling the core state transitions:
+A simplified approval workflow for construction site daily reports — the
+core state transitions modelled in a single domain entity:
 
 ```
 Draft → Submitted → UnderReview → Approved
                                 ↘ Rejected
 ```
 
-Real-world approval workflows are more complex — delegated signing,
-escalation, rejection to specific steps, proxy approval. This project
-focuses on the engineering fundamentals: how to model a state machine
-in a domain entity, enforce business rules, and test them in isolation.
+A side project applying Clean Architecture, DDD, automated testing, and
+CI/CD to a domain I know from construction IT work. The domain is kept
+deliberately small; the engineering approach is the point.
 
 ## How it's structured
 
@@ -55,15 +37,13 @@ flowchart TD
     App --> Domain
 ```
 
-Dependencies point inward. Domain has no project references; Application
-depends only on Domain; Infrastructure implements Application's interfaces;
-Web wires everything together. The business rules live in the domain
-entity, the service layer coordinates the steps, and controllers just
-handle HTTP.
+Dependencies point inward: Domain has no project references, Application
+depends only on Domain, Infrastructure implements Application's interfaces,
+Web wires it together.
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the full rationale — why the
-domain is kept small, why EF Core over stored procedures, why a dual API,
-and what is deliberately out of scope.
+**[ARCHITECTURE.md](ARCHITECTURE.md)** has the reasoning — why the domain
+is small, why EF Core over stored procedures, why a dual API, the
+cross-cutting concerns, and what is deliberately out of scope.
 
 ## Technology Stack
 
@@ -71,7 +51,7 @@ and what is deliberately out of scope.
 |----------|-----------|---------|
 | Framework | ASP.NET Core 8 | Web API + MVC |
 | ORM | Entity Framework Core 8 | Database access |
-| Database (local) | SQL Server LocalDB | Development |
+| Database (local) | SQLite (auto) or SQL Server | Development |
 | Database (cloud) | Azure SQL Database (Serverless) | Production |
 | Testing | xUnit + Moq + FluentAssertions | Unit + Integration tests |
 | Logging | Serilog (structured JSON) | Structured request logging |
@@ -85,29 +65,17 @@ and what is deliberately out of scope.
 | CI/CD | GitHub Actions → Azure App Service | Automated build, test, and deploy |
 | Cloud | Azure App Service (Australia East) | Hosting |
 
-## Engineering Practices
+## Highlights
 
-- **Domain-driven design**: Aggregate with state machine, domain exceptions enforced at the domain layer
-- **Testing**: 95 unit and integration tests (AAA pattern, Moq for isolation); 80% average line-coverage threshold enforced in CI for the Domain and Application layers
-- **CI/CD**: Automated quality gate — failing tests block deployment; separate migration job before deploy
-- **Structured logging**: Serilog with Correlation ID middleware for end-to-end request tracing
-- **Security**: No secrets in source control; environment-based configuration; Azure Key Vault + Managed Identity for production secrets
-- **API design**: REST and GraphQL both expose reads and writes; every endpoint requires JWT authentication with role-based authorization — Workers file and submit reports, Supervisors and Project Managers review them
-- **API versioning**: URL-based versioning — v1 deprecated, v2 introduces breaking change (status as string)
-- **Rate limiting**: Fixed window (60 req/min) partitioned by user identity, falling back to IP
-- **CORS**: Configuration-driven allowed origins per environment — no hardcoded values
-- **Monitoring**: Azure Application Insights for request tracking, exception monitoring, and EF Core dependency telemetry
-- **Containerisation**: Multi-stage Dockerfile (restore → test → publish → slim runtime); `docker build` runs on every pull request with the test suite executing inside the build
-- **Project management**: Git feature-branch workflow, PR reviews with written technical decision rationale on every pull request, Jira Scrum board across 6 sprints
+- Clean Architecture with a strict dependency rule; workflow rules in a domain state machine
+- 95 unit + integration tests; 80% average line-coverage gate in CI (Domain + Application)
+- JWT auth + role-based authorization, enforced identically across REST, MVC, and GraphQL
+- REST (v1/v2, OpenAPI) and GraphQL (Hot Chocolate) over one shared service layer
+- Serilog structured logging with correlation IDs; rate limiting; health checks; Key Vault
+- GitHub Actions: tests + multi-stage Docker build gate every PR; migrate → deploy → smoke-test on `main`
+- Every pull request carries written rationale for the decision it makes — see the PR history
 
-Each pull request includes written rationale for the technical decisions made — see the PR history for the full record.
-
-## Tests
-
-95 tests across the four layers — domain, application (services), infrastructure
-(repository), and web (controllers and GraphQL). All passing in CI on every push,
-and again inside the Docker build. An 80% average line-coverage threshold is
-enforced in CI, scoped to the Domain and Application layers.
+How and why each of these works is in **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
 ## API Versions
 
