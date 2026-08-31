@@ -42,20 +42,28 @@ in a domain entity, enforce business rules, and test them in isolation.
 
 ## How it's structured
 
-```
-              Web  ──  controllers, REST + GraphQL, middleware
-             /   \
-            v     v
-  Application  <-  Infrastructure  ──  EF Core, repository
-       \             /                  (implements Application interfaces)
-        v           v
-            Domain  ──  DailyReport state machine, no dependencies
+```mermaid
+flowchart TD
+    Web["Web — controllers, REST + GraphQL, middleware, DI composition"]
+    App["Application — DailyReportService, interfaces"]
+    Infra["Infrastructure — EF Core, DailyReportRepository, migrations"]
+    Domain["Domain — DailyReport aggregate + state machine"]
+
+    Web --> App
+    Web --> Infra
+    Infra --> App
+    App --> Domain
 ```
 
-Dependencies point inward. Domain depends on nothing; Application
-depends only on Domain; Infrastructure and Web depend on Application.
-The business rules live in the domain entity, the service layer
-coordinates the steps, and controllers just handle HTTP.
+Dependencies point inward. Domain has no project references; Application
+depends only on Domain; Infrastructure implements Application's interfaces;
+Web wires everything together. The business rules live in the domain
+entity, the service layer coordinates the steps, and controllers just
+handle HTTP.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the full rationale — why the
+domain is kept small, why EF Core over stored procedures, why a dual API,
+and what is deliberately out of scope.
 
 ## Technology Stack
 
