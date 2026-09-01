@@ -34,6 +34,7 @@ namespace CDRS.Web.Middleware
             var (statusCode, message) = ex switch
             {
                 DomainException => (HttpStatusCode.BadRequest, ex.Message),
+                ConcurrencyConflictException => (HttpStatusCode.Conflict, ex.Message),
                 KeyNotFoundException => (HttpStatusCode.NotFound, ex.Message),
                 _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
             };

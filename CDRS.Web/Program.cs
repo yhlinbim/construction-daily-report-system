@@ -184,6 +184,11 @@ builder.Services
     .AddQueryType<ReportQuery>()
     .AddMutationType<ReportMutation>();
 
+// Return HTTP 200 for well-formed GraphQL error responses (e.g. an
+// authorization failure), matching the GitHub / Apollo / Hasura convention
+// rather than HotChocolate 13's default 500.
+builder.Services.AddHttpResponseFormatter<CDRS.Web.GraphQL.GraphQLHttpResponseFormatter>();
+
 // Rate Limiting
 builder.Services.AddRateLimiter(options =>
 {

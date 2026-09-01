@@ -21,6 +21,13 @@ namespace CDRS.Domain.Entities
         public DateTime CreatedAtUtc { get; private set; }
         public string? RejectionReason { get; private set; }
 
+        /// <summary>
+        /// Optimistic-concurrency token. Incremented on every state transition
+        /// and used by EF Core to detect a report that changed between load
+        /// and save (e.g. two reviewers acting on it at once).
+        /// </summary>
+        public int Version { get; private set; }
+
         private DailyReport() { }
 
         public static DailyReport Create(
@@ -48,7 +55,8 @@ namespace CDRS.Domain.Entities
                 WorkerCount = workerCount,
                 WeatherCondition = weatherCondition.Trim(),
                 Status = ReportStatus.Draft,
-                CreatedAtUtc = DateTime.UtcNow
+                CreatedAtUtc = DateTime.UtcNow,
+                Version = 1
             };
         }
 
@@ -57,6 +65,7 @@ namespace CDRS.Domain.Entities
             if (Status != ReportStatus.Draft)
                 throw new DomainException($"Only draft reports can be submitted. Current status: {Status}");
             Status = ReportStatus.Submitted;
+            Version++;
         }
 
         public void StartReview()
@@ -64,6 +73,7 @@ namespace CDRS.Domain.Entities
             if (Status != ReportStatus.Submitted)
                 throw new DomainException($"Only submitted reports can be reviewed. Current status: {Status}");
             Status = ReportStatus.UnderReview;
+            Version++;
         }
 
         public void Approve()
@@ -71,6 +81,7 @@ namespace CDRS.Domain.Entities
             if (Status != ReportStatus.UnderReview)
                 throw new DomainException($"Only reports under review can be approved. Current status: {Status}");
             Status = ReportStatus.Approved;
+            Version++;
         }
 
         public void Reject(string reason)
@@ -81,6 +92,7 @@ namespace CDRS.Domain.Entities
                 throw new DomainException($"Reports in '{Status}' status cannot be rejected.");
             Status = ReportStatus.Rejected;
             RejectionReason = reason.Trim();
+            Version++;
         }
     }
 }

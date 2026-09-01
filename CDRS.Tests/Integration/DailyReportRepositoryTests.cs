@@ -1,5 +1,6 @@
 ﻿using CDRS.Domain.Entities;
 using CDRS.Domain.Enums;
+using CDRS.Domain.Exceptions;
 using CDRS.Infrastructure.Persistence;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -182,6 +183,47 @@ namespace CDRS.Tests.Integration
             saved.Should().NotBeNull();
             saved!.ProjectId.Should().Be("PROJ-001");
             saved.Status.Should().Be(ReportStatus.Draft);
+        }
+
+        // =============================================
+        // Optimistic concurrency
+        // =============================================
+
+        [Fact]
+        public async Task SaveChangesAsync_WhenReportChangedConcurrently_ShouldThrowConcurrencyConflict()
+        {
+            // Arrange — one report, persisted
+            var dbName = Guid.NewGuid().ToString();
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(dbName)
+                .Options;
+
+            var report = DailyReport.Create(
+                "PROJ-001", "EMP001", DateTime.Today, "Foundation work.", 3, "Fine");
+            await using (var seed = new AppDbContext(options))
+            {
+                seed.DailyReports.Add(report);
+                await seed.SaveChangesAsync();
+            }
+
+            // Two callers load the same report independently
+            await using var contextA = new AppDbContext(options);
+            await using var contextB = new AppDbContext(options);
+            var repoA = new DailyReportRepository(contextA);
+            var repoB = new DailyReportRepository(contextB);
+
+            var fromA = await repoA.GetByIdAsync(report.Id);
+            var fromB = await repoB.GetByIdAsync(report.Id);
+
+            // A submits first and wins
+            fromA!.Submit();
+            await repoA.SaveChangesAsync();
+
+            // B submits the now-stale copy
+            fromB!.Submit();
+            var act = () => repoB.SaveChangesAsync();
+
+            await act.Should().ThrowAsync<ConcurrencyConflictException>();
         }
     }
 }
