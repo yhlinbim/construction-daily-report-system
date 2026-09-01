@@ -33,6 +33,14 @@ namespace CDRS.Infrastructure.Persistence.Configurations
             builder.Property(e => e.RejectionReason)
                 .HasMaxLength(500);
 
+            // Optimistic concurrency: EF includes Version in the UPDATE WHERE
+            // clause; a mismatch (the row changed since load) throws
+            // DbUpdateConcurrencyException. Application-managed (the aggregate
+            // increments it) so it behaves identically on SQL Server, SQLite,
+            // and the in-memory provider used in tests.
+            builder.Property(e => e.Version)
+                .IsConcurrencyToken();
+
             // 常用查詢的索引
             builder.HasIndex(e => e.ProjectId);
             builder.HasIndex(e => new { e.ProjectId, e.ReportDate });

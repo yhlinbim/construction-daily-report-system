@@ -1,6 +1,7 @@
 ﻿using CDRS.Application.Interfaces;
 using CDRS.Domain.Entities;
 using CDRS.Domain.Enums;
+using CDRS.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace CDRS.Infrastructure.Persistence
@@ -47,8 +48,8 @@ namespace CDRS.Infrastructure.Persistence
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                throw new InvalidOperationException(
-                    "The record was modified by another user. Please refresh and try again.", ex);
+                throw new ConcurrencyConflictException(
+                    "This report was changed by someone else. Reload it and try again.", ex);
             }
         }
     }

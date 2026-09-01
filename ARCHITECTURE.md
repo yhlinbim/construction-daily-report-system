@@ -61,8 +61,17 @@ description required, worker count greater than zero — are enforced in the
 `DailyReport.Create` factory. There is no public constructor and no public
 setter; the entity cannot be put into an invalid state from outside.
 
+The aggregate carries a `Version` that it increments on every transition.
+EF Core treats it as a concurrency token: if the row changed between load
+and save (two reviewers acting on the same report at once), the save
+raises `ConcurrencyConflictException`, mapped to `409 Conflict`. It is an
+application-managed integer rather than a SQL Server `rowversion` so it
+behaves the same on SQL Server, the SQLite dev fallback, and the in-memory
+test provider.
+
 `DomainException` is caught once, in `GlobalExceptionMiddleware`, and mapped
-to `400 Bad Request`.
+to `400 Bad Request`; `ConcurrencyConflictException` to `409`,
+`KeyNotFoundException` to `404`.
 
 ## Application
 
@@ -129,7 +138,7 @@ rejected. `POST /api/auth/token` issues tokens for the demo (see
 | Concern | Where |
 |---|---|
 | Correlation IDs | `CorrelationIdMiddleware` — assigns an id, pushes it to Serilog and onto the request so error responses carry it |
-| Error handling | `GlobalExceptionMiddleware` — `DomainException` → 400, `KeyNotFoundException` → 404, everything else → 500 |
+| Error handling | `GlobalExceptionMiddleware` — `DomainException` → 400, `ConcurrencyConflictException` → 409, `KeyNotFoundException` → 404, everything else → 500 |
 | Structured logging | Serilog, compact JSON to console |
 | Rate limiting | Fixed window, 60 req/min, partitioned by user identity, then `X-Forwarded-For`, then connection IP. The forwarded header is trusted because Azure App Service's front end overwrites it; set `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` if fronted by a different proxy |
 | Health checks | `/health/live` (liveness), `/health/ready` (readiness, includes the DB) |

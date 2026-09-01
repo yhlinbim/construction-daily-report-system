@@ -94,8 +94,6 @@ Deliberate simplifications for a portfolio project:
 - **Role-based authorization only** — a Worker can act on any report, not just their own.
   Per-record ownership checks would need the user model that is also out of scope.
 - **Swagger is public** — served in every environment; the deployment smoke test depends on it.
-- **No optimistic concurrency** — the aggregate has no row-version token, so concurrent
-  edits are last-write-wins.
 - **No login UI** — the REST API and Swagger are the interface. The MVC views exist but
   there is no sign-in page.
 - **One aggregate, linear workflow** — delegation, escalation, multi-step routing and

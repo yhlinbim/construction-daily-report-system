@@ -9,7 +9,7 @@ namespace CDRS.Tests.Integration
     /// <summary>
     /// Integration tests for the GraphQL endpoint.
     ///
-    /// Covers two things:
+    /// Covers:
     /// 1. Schema construction — a regression guard for CDRA-66, where adding
     ///    [Authorize] to ReportMutation broke the schema (every /graphql
     ///    request returned HTTP 500) because AddAuthorization() was never
@@ -18,6 +18,8 @@ namespace CDRS.Tests.Integration
     ///    mutations must enforce the same rules as the equivalent REST
     ///    endpoints — no anonymous data access, reviewer-only pending queue,
     ///    worker-only writes.
+    /// 3. HTTP transport (CDRA-75): a well-formed GraphQL response, including
+    ///    an authorization failure, is 200 with an errors array — not 500.
     /// </summary>
     public class GraphQLIntegrationTests
         : IClassFixture<CustomWebApplicationFactory>
@@ -51,8 +53,14 @@ namespace CDRS.Tests.Integration
         {
             var response = await client.PostAsync("/graphql", GraphQLBody(query));
             var raw = await response.Content.ReadAsStringAsync();
+
             raw.Should().NotContain("SchemaException",
                 "the GraphQL schema must always build (CDRA-66 regression guard)");
+
+            // A well-formed GraphQL response - success or a plain errors array,
+            // including an authorization failure - is HTTP 200 (CDRA-75).
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
             return (response.StatusCode, JsonDocument.Parse(raw));
         }
 

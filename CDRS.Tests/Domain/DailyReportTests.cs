@@ -177,6 +177,37 @@ namespace CDRS.Tests.Domain
         }
 
         // =============================================
+        // Concurrency version
+        // =============================================
+
+        [Fact]
+        public void Version_StartsAtOne_AndIncrementsOnEachTransition()
+        {
+            var report = CreateValidReport();
+            report.Version.Should().Be(1);
+
+            report.Submit();
+            report.Version.Should().Be(2);
+
+            report.StartReview();
+            report.Version.Should().Be(3);
+
+            report.Approve();
+            report.Version.Should().Be(4);
+        }
+
+        [Fact]
+        public void Version_DoesNotChange_WhenATransitionIsRejected()
+        {
+            var report = CreateValidReport();
+
+            var act = () => report.Approve();  // invalid from Draft
+
+            act.Should().Throw<DomainException>();
+            report.Version.Should().Be(1);
+        }
+
+        // =============================================
         // Helper methods
         // =============================================
 

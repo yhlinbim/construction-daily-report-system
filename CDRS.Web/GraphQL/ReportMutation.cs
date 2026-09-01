@@ -48,6 +48,10 @@ namespace CDRS.Web.GraphQL
             {
                 return new MutationResult(false, $"Report {reportId} not found.");
             }
+            catch (ConcurrencyConflictException ex)
+            {
+                return new MutationResult(false, ex.Message);
+            }
             catch (DomainException ex)
             {
                 return new MutationResult(false, ex.Message);
