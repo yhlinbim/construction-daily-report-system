@@ -1,0 +1,10 @@
+flowchart TD
+    Web["<b>Web</b><br/>controllers, REST + GraphQL<br/>middleware, DI composition"]
+    App["<b>Application</b><br/>DailyReportService, interfaces"]
+    Infra["<b>Infrastructure</b><br/>EF Core, DailyReportRepository<br/>migrations"]
+    Domain["<b>Domain</b><br/>DailyReport aggregate + state machine"]
+
+    Web --> App
+    Web --> Infra
+    Infra --> App
+    App --> Domain

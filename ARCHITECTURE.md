@@ -19,19 +19,10 @@ and the delivery pipeline rather than on reproducing a full workflow engine.
 
 ## Layers and the dependency rule
 
-```mermaid
-%%{init: {"flowchart": {"htmlLabels": false}}}%%
-flowchart TD
-    Web["Web — controllers · REST v1/v2 · GraphQL · middleware · auth · DI composition root"]
-    App["Application — DailyReportService · IDailyReportService · IDailyReportRepository"]
-    Infra["Infrastructure — AppDbContext · DailyReportRepository · EF Core migrations · seeding"]
-    Domain["Domain — DailyReport aggregate · ReportStatus · DomainException"]
+<img src="docs/diagrams/architecture-layers.png" alt="Web depends on Application and Infrastructure; Infrastructure depends on Application; Application depends on Domain" width="360">
 
-    Web --> App
-    Web --> Infra
-    Infra --> App
-    App --> Domain
-```
+Source: [`docs/diagrams/architecture-layers.mmd`](docs/diagrams/architecture-layers.mmd) (rendered to PNG —
+GitHub's in-browser Mermaid rendering is inconsistent across browsers for this diagram).
 
 Dependencies point inward. The **Domain** project has no project
 references. **Application** depends only on Domain. **Infrastructure**
