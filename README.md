@@ -24,19 +24,10 @@ deliberately small; the engineering approach is the point.
 
 ## How it's structured
 
-```mermaid
-%%{init: {"flowchart": {"htmlLabels": false}}}%%
-flowchart TD
-    Web["Web — controllers, REST + GraphQL, middleware, DI composition"]
-    App["Application — DailyReportService, interfaces"]
-    Infra["Infrastructure — EF Core, DailyReportRepository, migrations"]
-    Domain["Domain — DailyReport aggregate + state machine"]
+<img src="docs/diagrams/readme-structure.png" alt="Web depends on Application and Infrastructure; Infrastructure depends on Application; Application depends on Domain" width="360">
 
-    Web --> App
-    Web --> Infra
-    Infra --> App
-    App --> Domain
-```
+Source: [`docs/diagrams/readme-structure.mmd`](docs/diagrams/readme-structure.mmd) (rendered to PNG — GitHub's
+in-browser Mermaid rendering is inconsistent across browsers for this diagram).
 
 Dependencies point inward: Domain has no project references, Application
 depends only on Domain, Infrastructure implements Application's interfaces,
