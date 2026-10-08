@@ -21,9 +21,6 @@ and the delivery pipeline rather than on reproducing a full workflow engine.
 
 <img src="docs/diagrams/architecture-layers.png" alt="Web depends on Application and Infrastructure; Infrastructure depends on Application; Application depends on Domain" width="360">
 
-Source: [`docs/diagrams/architecture-layers.mmd`](docs/diagrams/architecture-layers.mmd) (rendered to PNG —
-GitHub's in-browser Mermaid rendering is inconsistent across browsers for this diagram).
-
 Dependencies point inward. The **Domain** project has no project
 references. **Application** depends only on Domain. **Infrastructure**
 depends on Application — it implements Application's interfaces. **Web**
