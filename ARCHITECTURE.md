@@ -20,11 +20,12 @@ and the delivery pipeline rather than on reproducing a full workflow engine.
 ## Layers and the dependency rule
 
 ```mermaid
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
 flowchart TD
-    Web["<b>Web</b><br/>controllers · REST v1/v2 · GraphQL · middleware<br/>auth · DI composition root"]
-    App["<b>Application</b><br/>DailyReportService · IDailyReportService · IDailyReportRepository"]
-    Infra["<b>Infrastructure</b><br/>AppDbContext · DailyReportRepository · EF Core migrations · seeding"]
-    Domain["<b>Domain</b><br/>DailyReport aggregate · ReportStatus · DomainException"]
+    Web["Web — controllers · REST v1/v2 · GraphQL · middleware · auth · DI composition root"]
+    App["Application — DailyReportService · IDailyReportService · IDailyReportRepository"]
+    Infra["Infrastructure — AppDbContext · DailyReportRepository · EF Core migrations · seeding"]
+    Domain["Domain — DailyReport aggregate · ReportStatus · DomainException"]
 
     Web --> App
     Web --> Infra

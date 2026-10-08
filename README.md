@@ -25,6 +25,7 @@ deliberately small; the engineering approach is the point.
 ## How it's structured
 
 ```mermaid
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
 flowchart TD
     Web["Web — controllers, REST + GraphQL, middleware, DI composition"]
     App["Application — DailyReportService, interfaces"]
