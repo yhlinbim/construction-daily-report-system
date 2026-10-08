@@ -26,9 +26,6 @@ deliberately small; the engineering approach is the point.
 
 <img src="docs/diagrams/readme-structure.png" alt="Web depends on Application and Infrastructure; Infrastructure depends on Application; Application depends on Domain" width="360">
 
-Source: [`docs/diagrams/readme-structure.mmd`](docs/diagrams/readme-structure.mmd) (rendered to PNG — GitHub's
-in-browser Mermaid rendering is inconsistent across browsers for this diagram).
-
 Dependencies point inward: Domain has no project references, Application
 depends only on Domain, Infrastructure implements Application's interfaces,
 Web wires it together.
